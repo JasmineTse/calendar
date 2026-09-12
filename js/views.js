@@ -205,6 +205,11 @@ export function dayPanelHtml(key) {
       <button class="icon-btn" data-action="detail-nav" data-dir="1">›</button>
     </div>
     ${chips ? `<div class="chips">${chips}</div>` : ''}
+    ${(() => {
+      const term = d.jieqi || d.prevJieqi || '';
+      const tip = TERM_TIPS[term];
+      return tip ? `<div class="card tip-card"><h4>节气养生 · ${esc(term)}</h4><p class="tip">${esc(tip)}</p></div>` : '';
+    })()}
     <div class="card">
       <h4>黄历 · 宜忌</h4>
       <div class="yiji">
@@ -225,11 +230,6 @@ export function dayPanelHtml(key) {
       </div>
       <p class="disclaimer">民俗内容，仅供参考</p>
     </div>
-    ${(() => {
-      const term = d.jieqi || d.prevJieqi || '';
-      const tip = TERM_TIPS[term];
-      return tip ? `<div class="card tip-card"><h4>节气养生 · ${esc(term)}</h4><p class="tip">${esc(tip)}</p></div>` : '';
-    })()}
   </section>`;
 }
 
