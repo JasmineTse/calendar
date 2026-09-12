@@ -1,0 +1,490 @@
+// 应用主控：启动、标签页、事件调度、日期选择器、应用锁、通知循环
+import { toKey, parseDate, addDays, addMonths, todayKey } from './dates.js';
+import { get, save, uid, resetAll, exportData, importData } from './store.js';
+import { HolidayStore, validateHolidayJson } from './holidays.js';
+import { syncHolidays, mergeOverride } from './holiday-sync.js';
+import * as period from './period.js';
+import { makeEvent } from './events.js';
+import { state } from './state.js';
+import {
+  renderCalendarTab, renderPeriodTab, renderSettingsTab,
+  renderDetail, renderEditor, renderPicker, pickerHtml, lockHtml, historyHtml,
+  showMsg, esc, sha256hex
+} from './views.js';
+import { requestPermission, permissionState, tick, startLoop } from './notify.js';
+
+let pickerOpen = false;
+let locked = false;
+
+const $ = id => document.getElementById(id);
+
+function render() {
+  const tabs = { calendar: renderCalendarTab, period: renderPeriodTab, settings: renderSettingsTab };
+  for (const [name, fn] of Object.entries(tabs)) {
+    const el = $('view-' + name);
+    if (state.tab === name) { el.hidden = false; if (!(name === 'period' && locked)) fn(el); }
+    else el.hidden = true;
+  }
+  document.querySelectorAll('.tabbar button').forEach(b => b.classList.toggle('on', b.dataset.tab === state.tab));
+  renderDetail($('overlay-root'));
+  if (!state.detailOpen) renderEditor($('overlay-root'));
+  const pr = $('picker-root');
+  if (pickerOpen) pr.innerHTML = pickerHtml();
+  else if (pr.dataset.open === '1') pr.innerHTML = '';
+  pr.dataset.open = pickerOpen ? '1' : '0';
+  $('history-root').innerHTML = state.historyOpen ? historyHtml() : '';
+}
+
+function closeOverlays() {
+  state.detailOpen = false;
+  state.editorOpen = false;
+  state.editingEventId = null;
+  state.historyOpen = false;
+  pickerOpen = false;
+  $('overlay-root').innerHTML = '';
+  $('picker-root').innerHTML = '';
+  $('history-root').innerHTML = '';
+}
+
+function gotoToday() {
+  state.cursor = new Date();
+  state.selected = todayKey();
+}
+
+function rebuildHolidayStore() {
+  const data = get();
+  if (state._builtinHolidays) {
+    state.holidayStore = new HolidayStore(state._builtinHolidays, data.holidaysOverride);
+  } else {
+    state.holidayStore = data.holidaysOverride ? new HolidayStore(null, data.holidaysOverride) : null;
+  }
+  const src = data.holidaysOverride || state._builtinHolidays;
+  state.holidayMeta = {
+    source: src ? (src.source || '') : '',
+    years: state.holidayStore ? state.holidayStore.yearList() : []
+  };
+}
+
+// ---------- 动作 ----------
+async function run(action, btn) {
+  const data = get();
+  const ds = btn.dataset;
+
+  switch (action) {
+    case 'tab': {
+      state.tab = ds.tab;
+      if (state.detailOpen || state.editorOpen || pickerOpen) closeOverlays();
+      render();
+      break;
+    }
+    case 'view':
+      state.view = ds.view;
+      render();
+      break;
+
+    case 'nav': {
+      const dir = parseInt(ds.dir, 10);
+      if (state.view === 'month') state.cursor = addMonths(state.cursor, dir);
+      else if (state.view === 'week') {
+        state.selected = toKey(addDays(parseDate(state.selected), dir * 7));
+        state.cursor = parseDate(state.selected);
+      } else {
+        state.cursor = new Date(state.cursor.getFullYear() + dir, state.cursor.getMonth(), 1);
+      }
+      render();
+      break;
+    }
+    case 'today':
+      gotoToday();
+      closeOverlays();
+      render();
+      break;
+    case 'today-pick':
+      gotoToday();
+      closeOverlays();
+      render();
+      break;
+
+    case 'open-picker': pickerOpen = true; render(); break;
+    case 'picker-close': pickerOpen = false; render(); break;
+    case 'pick-year':
+      state.cursor = new Date(state.cursor.getFullYear() + parseInt(ds.dir, 10), state.cursor.getMonth(), 1);
+      render();
+      break;
+    case 'pick-month':
+      state.cursor = new Date(state.cursor.getFullYear(), parseInt(ds.m, 10), 1);
+      state.view = 'month';
+      pickerOpen = false;
+      render();
+      break;
+    case 'pick-goto': {
+      const v = $('jump-date') && $('jump-date').value;
+      if (!v) { showMsg('请选择日期', true); break; }
+      state.selected = v;
+      state.cursor = parseDate(v);
+      pickerOpen = false;
+      render();
+      break;
+    }
+
+    case 'goto-day':
+      state.selected = ds.key;
+      state.cursor = parseDate(ds.key);
+      state.view = 'month';
+      render();
+      break;
+    case 'goto-month':
+      state.cursor = new Date(state.cursor.getFullYear(), parseInt(ds.m, 10), 1);
+      state.view = 'month';
+      render();
+      break;
+
+    case 'open-day':
+      state.selected = ds.key;
+      state.detailOpen = true;
+      state.editorOpen = false;
+      render();
+      break;
+    case 'detail-close': state.detailOpen = false; render(); break;
+    case 'detail-nav': {
+      state.selected = toKey(addDays(parseDate(state.selected), parseInt(ds.dir, 10)));
+      const sel = parseDate(state.selected);
+      if (sel.getMonth() !== state.cursor.getMonth() || sel.getFullYear() !== state.cursor.getFullYear()) state.cursor = sel;
+      render();
+      break;
+    }
+
+    case 'add-event':
+      if (ds.key) state.selected = ds.key;
+      state.editorOpen = true;
+      state.editingEventId = null;
+      state.detailOpen = false;
+      render();
+      break;
+    case 'edit-event':
+      state.editorOpen = true;
+      state.editingEventId = ds.id;
+      state.detailOpen = false;
+      render();
+      break;
+    case 'editor-close':
+      state.editorOpen = false;
+      state.editingEventId = null;
+      render();
+      break;
+    case 'event-save': {
+      const ev = makeEvent({
+        id: state.editingEventId || uid(),
+        title: $('f-title').value,
+        date: $('f-date').value,
+        startTime: $('f-start').value,
+        endTime: $('f-end').value,
+        note: $('f-note').value,
+        category: $('f-cat').value,
+        repeat: $('f-repeat').value,
+        remind: $('f-remind').value
+      });
+      if (!ev.date) { showMsg('请选择日期', true); break; }
+      const idx = data.events.findIndex(e => e.id === ev.id);
+      if (idx >= 0) data.events[idx] = ev; else data.events.push(ev);
+      save();
+      state.editorOpen = false;
+      state.editingEventId = null;
+      state.selected = ev.date;
+      render();
+      showMsg('已保存日程');
+      tick();
+      break;
+    }
+    case 'event-delete': {
+      const idx = data.events.findIndex(e => e.id === ds.id);
+      if (idx >= 0) data.events.splice(idx, 1);
+      save();
+      state.editorOpen = false;
+      state.editingEventId = null;
+      render();
+      showMsg('已删除');
+      break;
+    }
+    case 'toggle-done': {
+      const ev = data.events.find(e => e.id === ds.id);
+      if (ev) { ev.done = !ev.done; save(); render(); }
+      break;
+    }
+    case 'del-event': {
+      if (!confirm('删除这条日程？')) break;
+      const idx = data.events.findIndex(e => e.id === ds.id);
+      if (idx >= 0) data.events.splice(idx, 1);
+      save();
+      render();
+      showMsg('已删除');
+      break;
+    }
+    case 'festival-to-event': {
+      const ev = makeEvent({
+        id: uid(), title: ds.name, date: ds.key,
+        category: 'memory', repeat: 'yearly', remind: '1440'
+      });
+      data.events.push(ev);
+      save();
+      showMsg('已创建每年提醒：「' + ds.name + '」，提前 1 天通知');
+      tick();
+      break;
+    }
+
+    // 生理期
+    case 'period-start': {
+      const openRec = period.normalizePeriods(data.periods).filter(p => !p.end).pop();
+      if (openRec && ds.key >= openRec.start) { showMsg('已有进行中的经期记录', true); break; }
+      data.periods.push({ id: uid(), start: ds.key, end: null });
+      save();
+      render();
+      showMsg('已记录经期开始');
+      break;
+    }
+    case 'period-end': {
+      const openRec = period.normalizePeriods(data.periods).filter(p => !p.end).pop();
+      if (!openRec || ds.key < openRec.start) { showMsg('没有进行中的经期', true); break; }
+      openRec.end = ds.key;
+      save();
+      render();
+      showMsg('已记录经期结束');
+      break;
+    }
+    case 'period-new':
+      state.editingPeriodId = null;
+      renderPeriodTab($('view-period'));
+      break;
+    case 'period-save': {
+      const st = $('p-start').value, en = $('p-end').value;
+      if (!st) { showMsg('请选择开始日期', true); break; }
+      if (en && en < st) { showMsg('结束日期不能早于开始日期', true); break; }
+      if (state.editingPeriodId) {
+        const rec = data.periods.find(p => p.id === state.editingPeriodId);
+        if (rec) { rec.start = st; rec.end = en || null; }
+        state.editingPeriodId = null;
+        showMsg('已更新记录');
+      } else {
+        if (data.periods.some(p => p.start === st && p.end === (en || null))) { showMsg('该记录已存在', true); break; }
+        data.periods.push({ id: uid(), start: st, end: en || null });
+        showMsg('已保存记录');
+      }
+      save();
+      render();
+      break;
+    }
+    case 'period-history':
+      state.historyOpen = true;
+      render();
+      break;
+    case 'history-close':
+      state.historyOpen = false;
+      render();
+      break;
+    case 'period-edit':
+      state.editingPeriodId = ds.id;
+      state.historyOpen = false;
+      render();
+      break;
+    case 'period-del': {
+      if (!confirm('删除这条经期记录？')) break;
+      const idx = data.periods.findIndex(p => p.id === ds.id);
+      if (idx >= 0) data.periods.splice(idx, 1);
+      save();
+      render();
+      showMsg('已删除');
+      break;
+    }
+    case 'cycle-dec': data.settings.cycleLen = Math.max(21, data.settings.cycleLen - 1); save(); render(); break;
+    case 'cycle-inc': data.settings.cycleLen = Math.min(45, data.settings.cycleLen + 1); save(); render(); break;
+    case 'plen-dec': data.settings.periodLen = Math.max(2, data.settings.periodLen - 1); save(); render(); break;
+    case 'plen-inc': data.settings.periodLen = Math.min(10, data.settings.periodLen + 1); save(); render(); break;
+    case 'reminder-toggle':
+      data.settings.periodReminder = !data.settings.periodReminder;
+      save(); render();
+      if (data.settings.periodReminder && permissionState() === 'default') showMsg('已开启，建议在"设置 → 通知"里开启系统通知权限');
+      break;
+
+    // 设置
+    case 'notif-enable': {
+      const r = await requestPermission();
+      if (r === 'granted') { showMsg('通知已开启'); tick(); }
+      else if (r === 'denied') showMsg('通知被拒绝，请在浏览器设置中允许', true);
+      else showMsg('当前环境不支持系统通知', true);
+      render();
+      break;
+    }
+    case 'notif-test': {
+      if (permissionState() !== 'granted') { showMsg('请先开启通知权限', true); break; }
+      tick();
+      try {
+        const n = new Notification('万年历', { body: '通知工作正常 ✓', icon: 'icons/icon.svg' });
+        n.onclick = () => { window.focus(); n.close(); };
+      } catch (e) { showMsg('通知发送失败：' + e.message, true); }
+      break;
+    }
+    case 'pin-save': {
+      const p1 = $('pin1').value, p2 = $('pin2').value;
+      if (!/^\d{4,8}$/.test(p1)) { showMsg('PIN 需为 4–8 位数字', true); break; }
+      if (p1 !== p2) { showMsg('两次输入的 PIN 不一致', true); break; }
+      data.settings.pinHash = await sha256hex(p1);
+      save();
+      render();
+      showMsg('应用锁已开启');
+      break;
+    }
+    case 'pin-clear': {
+      if (!confirm('关闭应用锁后，打开应用将不再需要 PIN。确定？')) break;
+      data.settings.pinHash = null;
+      save();
+      render();
+      showMsg('应用锁已关闭');
+      break;
+    }
+    case 'holiday-sync': {
+      btn.disabled = true;
+      btn.textContent = '正在获取…';
+      try {
+        const { ok, unpublished, errors } = await syncHolidays();
+        if (!ok.length) {
+          if (unpublished.length) showMsg(unpublished.join('、') + ' 年安排尚未公布（预计 11 月发布）', true);
+          else showMsg('更新失败：' + (errors[0] || '网络不可用'), true);
+          break;
+        }
+        const d = get();
+        d.holidaysOverride = mergeOverride(d.holidaysOverride, ok, todayKey());
+        save();
+        rebuildHolidayStore();
+        render();
+        showMsg('已更新 ' + ok.map(u => u.year).join('、') + ' 年放假安排' + (unpublished.length ? '；' + unpublished.join('、') + ' 年尚未公布' : ''));
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '🔄 更新假期';
+      }
+      break;
+    }
+    case 'holiday-reset':
+      data.holidaysOverride = null;
+      save();
+      rebuildHolidayStore();
+      render();
+      showMsg('已恢复内置节假日数据');
+      break;
+    case 'data-export': {
+      const blob = new Blob([exportData()], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = '万年历备份-' + todayKey().replace(/-/g, '') + '.json';
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+      showMsg('备份已导出');
+      break;
+    }
+    case 'data-wipe': {
+      if (!confirm('将清空全部日程、生理期记录与设置，且无法恢复。确定？')) break;
+      if (!confirm('再次确认：真的要清空吗？')) break;
+      resetAll();
+      rebuildHolidayStore();
+      closeOverlays();
+      render();
+      showMsg('已清空全部数据');
+      break;
+    }
+
+    // 锁屏
+    case 'lock-unlock': {
+      const v = $('lock-pin').value;
+      const h = await sha256hex(v);
+      if (h === data.settings.pinHash) {
+        locked = false;
+        $('lock-root').innerHTML = '';
+        render();
+        tick();
+      } else {
+        const err = $('lock-err');
+        if (err) err.textContent = 'PIN 不正确，请重试';
+        $('lock-pin').value = '';
+      }
+      break;
+    }
+  }
+}
+
+// ---------- 启动 ----------
+async function boot() {
+  const data = get();
+
+  // 内置节假日数据
+  try {
+    const r = await fetch('data/holidays.json');
+    if (r.ok) state._builtinHolidays = await r.json();
+  } catch (e) { /* file:// 下会失败，降级为无内置数据 */ }
+  rebuildHolidayStore();
+
+  // 应用锁
+  if (data.settings.pinHash) {
+    locked = true;
+    $('lock-root').innerHTML = lockHtml();
+  }
+
+  render();
+
+  // 事件委托
+  document.body.addEventListener('click', e => {
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    if (btn.tagName === 'A') e.preventDefault();
+    run(btn.dataset.action, btn).catch(err => {
+      console.error(err);
+      showMsg('操作失败：' + err.message, true);
+    });
+  });
+
+  // change 事件（时间/文件输入）
+  document.body.addEventListener('change', async e => {
+    const t = e.target;
+    if (t.id === 'reminder-time') {
+      get().settings.reminderTime = t.value || '09:00';
+      save();
+    } else if (t.id === 'holiday-file') {
+      const f = t.files && t.files[0];
+      if (!f) return;
+      try {
+        const obj = JSON.parse(await f.text());
+        const chk = validateHolidayJson(obj);
+        if (!chk.ok) { showMsg('导入失败：' + chk.error, true); return; }
+        const d = get();
+        d.holidaysOverride = obj;
+        save();
+        rebuildHolidayStore();
+        render();
+        showMsg('节假日数据已导入（' + Object.keys(obj.years).join('、') + '）');
+      } catch (err) { showMsg('导入失败：文件不是有效的 JSON', true); }
+      t.value = '';
+    } else if (t.id === 'data-file') {
+      const f = t.files && t.files[0];
+      if (!f) return;
+      try {
+        importData(JSON.parse(await f.text()));
+        rebuildHolidayStore();
+        closeOverlays();
+        render();
+        showMsg('备份已导入');
+      } catch (err) { showMsg('导入失败：' + err.message, true); }
+      t.value = '';
+    }
+  });
+
+  // 通知循环
+  startLoop();
+
+  // 申请持久存储，降低系统自动清理本地数据的风险（对 iOS 尤其重要）
+  try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) { /* 忽略 */ }
+
+  // Service Worker（离线可用 + 可安装）
+  if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === '127.0.0.1' || location.hostname === 'localhost')) {
+    navigator.serviceWorker.register('sw.js').catch(() => { });
+  }
+}
+
+boot();
