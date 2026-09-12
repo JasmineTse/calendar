@@ -541,7 +541,7 @@ export function renderWhyTab(el) {
   const w = WHYS[state.whyIdx];
   const d = new Date();
   el.innerHTML = `
-    <header class="tab-head"><b>十万个为什么</b><span class="muted">${d.getMonth() + 1}月${d.getDate()}日 · 随机一问</span></header>
+    <header class="tab-head"><b>十万个为什么</b><span class="muted">${d.getMonth() + 1}月${d.getDate()}日</span></header>
     <div class="card why-card">
       <span class="chip">${esc(w.cat)}</span>
       <h3 class="why-q">${esc(w.q)}</h3>
@@ -555,7 +555,7 @@ export function renderWhyTab(el) {
     </div>`;
 }
 
-// ---------- 每日一诗 ----------
+// ---------- 有一诗 ----------
 export function renderPoemTab(el) {
   if (state.poemIdx == null) {
     const daily = poemOfTheDay(todayKey());
@@ -564,7 +564,7 @@ export function renderPoemTab(el) {
   const p = POEMS[state.poemIdx];
   const d = new Date();
   el.innerHTML = `
-    <header class="tab-head"><b>每日一诗</b><span class="muted">${d.getMonth() + 1}月${d.getDate()}日 · ${state.poemDaily ? '今日推荐' : '随机一诗'} · 共 ${POEMS.length} 首</span></header>
+    <header class="tab-head"><b>有一诗</b><span class="muted">${d.getMonth() + 1}月${d.getDate()}日 · ${state.poemDaily ? '今日推荐' : '随机一诗'}</span></header>
     <div class="card poem-card">
       <h3 class="poem-title">${esc(p.t)}</h3>
       <div class="poem-author">${esc(p.d)} · ${esc(p.a)}<span class="chip">${p.k}</span></div>
