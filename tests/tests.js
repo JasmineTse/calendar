@@ -7,7 +7,7 @@ import { getDayDetail, cellLabel } from '../js/lunar-adapter.js';
 import { parseTimor, parseHolidayCN, mergeOverride, fetchYearData } from '../js/holiday-sync.js';
 import { TERM_TIPS, TERM_ORDER } from '../js/tips.js';
 import { POEMS, poemOfTheDay, randomPoemIndex } from '../js/poems.js';
-import { WHYS, whyOfTheDay, randomWhyIndex } from '../js/whys.js';
+import { WHYS, randomWhyIndex } from '../js/whys.js';
 
 const out = [];
 let pass = 0, fail = 0;
@@ -238,11 +238,10 @@ ok('不同日期推荐不同', new Set(['2026-09-13', '2026-09-14', '2026-09-15'
 ok('随机换一首不重复当前', POEMS.every((_, i) => randomPoemIndex(i) !== i));
 
 // ---------- 十万个为什么 ----------
-eq('为什么问题为10个', WHYS.length, 10);
+ok('问题池不少于20个', WHYS.length >= 20);
 ok('每问字段完整且答案充实', WHYS.every(w => w.q && w.cat && w.a && w.a.length >= 80));
-eq('每日一问确定性（同日同问）', whyOfTheDay('2026-09-13'), whyOfTheDay('2026-09-13'));
-ok('不同日期推荐不同', new Set(['2026-09-13', '2026-09-14', '2026-09-15', '2026-09-16'].map(whyOfTheDay)).size > 1);
-ok('随机换一个不重复当前', WHYS.every((_, i) => randomWhyIndex(i) !== i));
+ok('问题不重复', new Set(WHYS.map(w => w.q)).size === WHYS.length);
+ok('随机下标在范围内且不重复当前', WHYS.every((_, i) => { const r = randomWhyIndex(i); return r >= 0 && r < WHYS.length && r !== i; }));
 
 // ---------- 输出 ----------
 document.getElementById('out').innerHTML = out.join('\n');

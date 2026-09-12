@@ -6,7 +6,7 @@ import * as events from './events.js';
 import { getDayDetail, cellLabel } from './lunar-adapter.js';
 import { TERM_TIPS } from './tips.js';
 import { POEMS, poemOfTheDay } from './poems.js';
-import { WHYS, whyOfTheDay } from './whys.js';
+import { WHYS, randomWhyIndex } from './whys.js';
 import { state } from './state.js';
 
 export function esc(s) {
@@ -537,14 +537,11 @@ export function renderSettingsTab(el) { el.innerHTML = settingsTabHtml(); }
 
 // ---------- 十万个为什么 ----------
 export function renderWhyTab(el) {
-  if (state.whyIdx == null) {
-    const daily = whyOfTheDay(todayKey());
-    state.whyIdx = WHYS.indexOf(daily) >= 0 ? WHYS.indexOf(daily) : 0;
-  }
+  if (state.whyIdx == null) state.whyIdx = randomWhyIndex(-1);
   const w = WHYS[state.whyIdx];
   const d = new Date();
   el.innerHTML = `
-    <header class="tab-head"><b>十万个为什么</b><span class="muted">${d.getMonth() + 1}月${d.getDate()}日 · ${state.whyDaily ? '今日一问' : '随机一问'} · 共 ${WHYS.length} 问</span></header>
+    <header class="tab-head"><b>十万个为什么</b><span class="muted">${d.getMonth() + 1}月${d.getDate()}日 · 随机一问</span></header>
     <div class="card why-card">
       <span class="chip">${esc(w.cat)}</span>
       <h3 class="why-q">${esc(w.q)}</h3>

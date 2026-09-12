@@ -416,7 +416,6 @@ async function run(action, btn) {
 
     case 'why-shuffle': {
       state.whyIdx = randomWhyIndex(state.whyIdx);
-      state.whyDaily = false;
       renderWhyTab($('view-why'));
       break;
     }
