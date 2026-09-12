@@ -1,0 +1,16 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><title>diag</title></head>
+<body><pre id="out">running…</pre>
+<script type="module">
+import { ZODIAC, generateFortune } from '../js/zodiac.js';
+const dates = ['2026-09-13','2026-09-14','2026-09-15','2026-09-16','2026-09-17','2026-12-31','2027-01-01'];
+const lens = [];
+const bad = [];
+for (let i = 0; i < 12; i++) for (const d of dates) {
+  const t = generateFortune(i, d).text;
+  lens.push(t.length);
+  if (t.length < 200 || t.length > 300) bad.push(i + '/' + d + '/' + t.length + ': ' + t);
+}
+const min = Math.min(...lens), max = Math.max(...lens);
+document.getElementById('out').textContent = JSON.stringify({ min, max, badCount: bad.length, bad: bad.map(b => b.split(':').slice(0,2).join(':')) }, null, 1);
+window.__DIAG_DONE = true;
+</script></body></html>

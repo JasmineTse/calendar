@@ -8,7 +8,8 @@ function defaults() {
       periodLen: 5,        // 平均经期天数
       periodReminder: true, // 经期开始日提醒
       reminderTime: '09:00',
-      pinHash: null        // 应用锁 PIN 的哈希
+      pinHash: null,       // 应用锁 PIN 的哈希
+      zodiacSign: 0        // 我的星座（下标）
     },
     events: [],            // 日程
     periods: [],           // 生理期记录 {id,start,end}

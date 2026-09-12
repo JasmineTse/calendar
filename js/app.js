@@ -7,7 +7,7 @@ import * as period from './period.js';
 import { makeEvent } from './events.js';
 import { state } from './state.js';
 import {
-  renderCalendarTab, renderPeriodTab, renderSettingsTab, renderPoemTab,
+  renderCalendarTab, renderPeriodTab, renderSettingsTab, renderPoemTab, renderZodiacTab,
   renderEditor, renderPicker, pickerHtml, lockHtml, historyHtml,
   showMsg, esc, sha256hex
 } from './views.js';
@@ -20,7 +20,7 @@ let locked = false;
 const $ = id => document.getElementById(id);
 
 function render() {
-  const tabs = { calendar: renderCalendarTab, poem: renderPoemTab, period: renderPeriodTab, settings: renderSettingsTab };
+  const tabs = { calendar: renderCalendarTab, poem: renderPoemTab, zodiac: renderZodiacTab, period: renderPeriodTab, settings: renderSettingsTab };
   for (const [name, fn] of Object.entries(tabs)) {
     const el = $('view-' + name);
     if (state.tab === name) { el.hidden = false; if (!(name === 'period' && locked)) fn(el); }
@@ -413,6 +413,13 @@ async function run(action, btn) {
       break;
     }
 
+    case 'zodiac-select': {
+      const d = get();
+      d.settings.zodiacSign = parseInt(ds.idx, 10) || 0;
+      save();
+      renderZodiacTab($('view-zodiac'));
+      break;
+    }
     case 'poem-shuffle': {
       state.poemIdx = randomPoemIndex(state.poemIdx);
       state.poemDaily = false;

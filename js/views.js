@@ -6,6 +6,7 @@ import * as events from './events.js';
 import { getDayDetail, cellLabel } from './lunar-adapter.js';
 import { TERM_TIPS } from './tips.js';
 import { POEMS, poemOfTheDay } from './poems.js';
+import { ZODIAC, generateFortune } from './zodiac.js';
 import { state } from './state.js';
 
 export function esc(s) {
@@ -533,6 +534,44 @@ export function settingsTabHtml() {
 }
 
 export function renderSettingsTab(el) { el.innerHTML = settingsTabHtml(); }
+
+// ---------- 星座运势 ----------
+export function renderZodiacTab(el) {
+  const data = get();
+  const sel = Number.isInteger(data.settings.zodiacSign) ? data.settings.zodiacSign : 0;
+  const z = ZODIAC[sel];
+  const todayK = todayKey();
+  const f = generateFortune(sel, todayK);
+  const dateCn = parseInt(todayK.slice(5, 7), 10) + '月' + parseInt(todayK.slice(8, 10), 10) + '日';
+  const grid = ZODIAC.map((s, i) =>
+    `<button class="zg-cell ${i === sel ? 'on' : ''}" data-action="zodiac-select" data-idx="${i}"><span class="zg-sym">${s.sym}</span><span>${s.name.slice(0, -1)}</span></button>`).join('');
+  const stars = n => '★'.repeat(n) + '☆'.repeat(5 - n);
+  const rate = (label, n) => `<div class="zg-rate"><span>${label}</span><b>${stars(n)}</b></div>`;
+
+  el.innerHTML = `
+    <header class="tab-head"><b>星座运势</b><span class="muted">${dateCn} · 12 星座每日运势</span></header>
+    <div class="zg-grid">${grid}</div>
+    <div class="card">
+      <div class="zg-head">
+        <span class="zg-big">${z.sym}</span>
+        <div><b>${z.name}</b><span>${z.range} · ${z.elem}</span></div>
+      </div>
+      <div class="zg-rates">
+        ${rate('综合运势', f.ratings.overall)}
+        ${rate('爱情运', f.ratings.love)}
+        ${rate('事业学业', f.ratings.career)}
+        ${rate('财运', f.ratings.wealth)}
+        ${rate('健康', f.ratings.health)}
+      </div>
+      <div class="zg-lucky">
+        <span>幸运颜色 <b>${esc(f.color)}</b></span>
+        <span>幸运数字 <b>${f.num}</b></span>
+        <span>贵人星座 <b>${esc(f.friend)}</b></span>
+      </div>
+      <p class="zg-text">${esc(f.text)}</p>
+      <p class="disclaimer">星座运势为本地生成的娱乐内容，仅供消遣</p>
+    </div>`;
+}
 
 // ---------- 每日一诗 ----------
 export function renderPoemTab(el) {

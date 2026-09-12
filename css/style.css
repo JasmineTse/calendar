@@ -146,13 +146,13 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); }
 }
 .tabbar {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 9;
-  display: flex; justify-content: center; gap: 10px;
+  display: flex; justify-content: center; gap: 6px;
   background: var(--card); border-top: 1px solid var(--border);
   padding: 6px 0 calc(6px + env(safe-area-inset-bottom));
 }
 .tabbar button {
   display: flex; flex-direction: column; align-items: center; gap: 1px;
-  color: var(--muted); font-size: 11px; min-width: 72px; padding: 3px 0;
+  color: var(--muted); font-size: 10.5px; min-width: 64px; padding: 3px 0;
 }
 .tabbar button svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .tabbar button.on { color: var(--accent); }
@@ -228,6 +228,30 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); }
 .poem-tr { text-align: left; background: var(--bg); border-radius: 10px; padding: 10px 14px; }
 .poem-tr label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px; }
 .poem-tr p { margin: 0; font-size: 13.5px; line-height: 1.9; }
+
+/* ---------- 星座运势 ---------- */
+.zg-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+.zg-cell {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+  padding: 9px 0 7px; font-size: 12px; color: var(--muted); box-shadow: var(--shadow);
+}
+.zg-cell .zg-sym { font-size: 19px; line-height: 1.2; color: var(--text); }
+.zg-cell.on { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.zg-cell.on .zg-sym { color: var(--accent); }
+.zg-head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.zg-big { font-size: 36px; line-height: 1; color: var(--accent); }
+.zg-head b { font-size: 19px; display: block; }
+.zg-head span { font-size: 12px; color: var(--muted); display: block; margin-top: 2px; }
+.zg-rates { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; margin-bottom: 10px; }
+.zg-rate { display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; color: var(--muted); }
+.zg-rate b { color: var(--accent); letter-spacing: 1px; font-weight: 400; }
+.zg-lucky {
+  display: flex; gap: 6px 14px; flex-wrap: wrap; font-size: 12.5px; color: var(--muted);
+  background: var(--bg); border-radius: 8px; padding: 8px 12px; margin-bottom: 10px;
+}
+.zg-lucky b { color: var(--text); font-weight: 500; }
+.zg-text { margin: 0; font-size: 14px; line-height: 1.95; text-align: justify; }
 
 /* ---------- 日程行 ---------- */
 .ev-row { display: flex; align-items: flex-start; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--border); }
