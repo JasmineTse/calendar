@@ -13,6 +13,7 @@ const CORE = [
   'js/events.js',
   'js/lunar-adapter.js',
   'js/tips.js',
+  'js/poems.js',
   'js/notify.js',
   'js/state.js',
   'js/views.js',

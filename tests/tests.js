@@ -6,6 +6,7 @@ import { makeEvent, occurrencesInRange, getEventsForDate } from '../js/events.js
 import { getDayDetail, cellLabel } from '../js/lunar-adapter.js';
 import { parseTimor, parseHolidayCN, mergeOverride, fetchYearData } from '../js/holiday-sync.js';
 import { TERM_TIPS, TERM_ORDER } from '../js/tips.js';
+import { POEMS, poemOfTheDay, randomPoemIndex } from '../js/poems.js';
 
 const out = [];
 let pass = 0, fail = 0;
@@ -225,6 +226,14 @@ const json = await fetch('../data/holidays.json').then(r => r.json());
 eq('节气养生覆盖24节气', TERM_ORDER.filter(t => TERM_TIPS[t] && TERM_TIPS[t].length >= 8).length, 24);
 eq('节气顺序无重复', new Set(TERM_ORDER).size, 24);
 ok('养生文案短小（≤40字）', TERM_ORDER.every(t => TERM_TIPS[t].length <= 40));
+
+// ---------- 每日一诗 ----------
+ok('诗词库不少于60首', POEMS.length >= 60);
+ok('每首诗字段完整', POEMS.every(p => p.t && p.a && p.d && p.k && Array.isArray(p.p) && p.p.length > 0 && p.p.every(l => typeof l === 'string') && p.tr && p.tr.length >= 10));
+ok('唐诗宋词兼备', POEMS.some(p => p.d === '唐') && POEMS.some(p => p.d === '宋'));
+eq('每日一诗确定性（同日同诗）', poemOfTheDay('2026-09-13'), poemOfTheDay('2026-09-13'));
+ok('不同日期推荐不同', new Set(['2026-09-13', '2026-09-14', '2026-09-15', '2026-09-16', '2026-09-17', '2026-09-18'].map(poemOfTheDay)).size > 1);
+ok('随机换一首不重复当前', POEMS.every((_, i) => randomPoemIndex(i) !== i));
 
 // ---------- 输出 ----------
 document.getElementById('out').innerHTML = out.join('\n');

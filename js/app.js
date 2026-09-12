@@ -7,10 +7,11 @@ import * as period from './period.js';
 import { makeEvent } from './events.js';
 import { state } from './state.js';
 import {
-  renderCalendarTab, renderPeriodTab, renderSettingsTab,
+  renderCalendarTab, renderPeriodTab, renderSettingsTab, renderPoemTab,
   renderEditor, renderPicker, pickerHtml, lockHtml, historyHtml,
   showMsg, esc, sha256hex
 } from './views.js';
+import { randomPoemIndex } from './poems.js';
 import { requestPermission, permissionState, tick, startLoop } from './notify.js';
 
 let pickerOpen = false;
@@ -19,7 +20,7 @@ let locked = false;
 const $ = id => document.getElementById(id);
 
 function render() {
-  const tabs = { calendar: renderCalendarTab, period: renderPeriodTab, settings: renderSettingsTab };
+  const tabs = { calendar: renderCalendarTab, poem: renderPoemTab, period: renderPeriodTab, settings: renderSettingsTab };
   for (const [name, fn] of Object.entries(tabs)) {
     const el = $('view-' + name);
     if (state.tab === name) { el.hidden = false; if (!(name === 'period' && locked)) fn(el); }
@@ -409,6 +410,13 @@ async function run(action, btn) {
       closeOverlays();
       render();
       showMsg('已清空全部数据');
+      break;
+    }
+
+    case 'poem-shuffle': {
+      state.poemIdx = randomPoemIndex(state.poemIdx);
+      state.poemDaily = false;
+      renderPoemTab($('view-poem'));
       break;
     }
 

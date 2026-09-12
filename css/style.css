@@ -135,13 +135,13 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); }
 }
 .tabbar {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 9;
-  display: flex; justify-content: center; gap: 40px;
+  display: flex; justify-content: center; gap: 10px;
   background: var(--card); border-top: 1px solid var(--border);
   padding: 6px 0 calc(6px + env(safe-area-inset-bottom));
 }
 .tabbar button {
   display: flex; flex-direction: column; align-items: center; gap: 1px;
-  color: var(--muted); font-size: 11px; min-width: 64px; padding: 3px 0;
+  color: var(--muted); font-size: 11px; min-width: 72px; padding: 3px 0;
 }
 .tabbar button svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .tabbar button.on { color: var(--accent); }
@@ -204,6 +204,20 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); }
 .almanac { border-top: 1px dashed var(--border); padding-top: 6px; }
 .tip-card .tip { margin: 0; font-size: 13.5px; line-height: 1.8; color: var(--text); }
 .tip-card h4 { color: var(--green); }
+
+/* ---------- 每日一诗 ---------- */
+.poem-card { text-align: center; padding: 20px 16px 14px; }
+.poem-title { margin: 2px 0 4px; font-size: 21px; letter-spacing: 1px; }
+.poem-author { color: var(--muted); font-size: 13px; margin-bottom: 14px; }
+.poem-author .chip { margin-left: 6px; }
+.poem-body {
+  font-size: 16.5px; line-height: 2.15; color: var(--text);
+  font-family: "Kaiti SC", "KaiTi", "STKaiti", "Songti SC", "SimSun", serif;
+}
+.poem-divider { border-top: 1px dashed var(--border); margin: 16px 24px 12px; }
+.poem-tr { text-align: left; background: var(--bg); border-radius: 10px; padding: 10px 14px; }
+.poem-tr label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px; }
+.poem-tr p { margin: 0; font-size: 13.5px; line-height: 1.9; }
 
 /* ---------- 日程行 ---------- */
 .ev-row { display: flex; align-items: flex-start; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--border); }

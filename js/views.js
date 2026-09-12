@@ -5,6 +5,7 @@ import * as period from './period.js';
 import * as events from './events.js';
 import { getDayDetail, cellLabel } from './lunar-adapter.js';
 import { TERM_TIPS } from './tips.js';
+import { POEMS, poemOfTheDay } from './poems.js';
 import { state } from './state.js';
 
 export function esc(s) {
@@ -532,6 +533,32 @@ export function settingsTabHtml() {
 }
 
 export function renderSettingsTab(el) { el.innerHTML = settingsTabHtml(); }
+
+// ---------- 每日一诗 ----------
+export function renderPoemTab(el) {
+  if (state.poemIdx == null) {
+    const daily = poemOfTheDay(todayKey());
+    state.poemIdx = POEMS.indexOf(daily) >= 0 ? POEMS.indexOf(daily) : 0;
+  }
+  const p = POEMS[state.poemIdx];
+  const d = new Date();
+  el.innerHTML = `
+    <header class="tab-head"><b>每日一诗</b><span class="muted">${d.getMonth() + 1}月${d.getDate()}日 · ${state.poemDaily ? '今日推荐' : '随机一诗'} · 共 ${POEMS.length} 首</span></header>
+    <div class="card poem-card">
+      <h3 class="poem-title">${esc(p.t)}</h3>
+      <div class="poem-author">${esc(p.d)} · ${esc(p.a)}<span class="chip">${p.k}</span></div>
+      <div class="poem-body">${p.p.map(l => esc(l)).join('<br>')}</div>
+      <div class="poem-divider"></div>
+      <div class="poem-tr">
+        <label>译文</label>
+        <p>${esc(p.tr)}</p>
+      </div>
+      <div class="form-btns">
+        <button class="btn ghost sm" data-action="poem-shuffle">换一首</button>
+      </div>
+      <p class="disclaimer">诗文为公版古籍，译文仅供参考</p>
+    </div>`;
+}
 
 // ---------- 锁屏 ----------
 export function lockHtml() {
