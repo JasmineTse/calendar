@@ -1,39 +1,50 @@
-/* 万年历 · 无广告离线版 */
+/* 万年历 · 无广告离线版 · 古风视觉 */
 :root {
-  --bg: #f6f5f1;
-  --card: #ffffff;
-  --text: #26282c;
-  --muted: #8a8f98;
-  --border: #e9e6df;
-  --accent: #d4483e;
-  --accent-soft: #fdeeec;
-  --red: #d4483e;
-  --orange: #e08a3c;
-  --blue: #4a90d9;
-  --green: #3aa675;
-  --purple: #8e6fd8;
-  --rose: #e2557b;
-  --shadow: 0 1px 3px rgba(0,0,0,.06);
+  --bg: #f4eee1;           /* 宣纸 */
+  --card: #fdfaf3;
+  --text: #33302a;         /* 墨色 */
+  --muted: #8b8371;
+  --border: #e3dbc8;
+  --accent: #a83f39;       /* 朱砂 */
+  --accent-soft: #f6e7e0;
+  --red: #a83f39;
+  --orange: #b8763a;       /* 赭石 */
+  --blue: #4a708e;         /* 黛蓝 */
+  --green: #587b52;        /* 竹青 */
+  --purple: #7c5f9e;       /* 青莲 */
+  --rose: #c95c7c;         /* 海棠 */
+  --shadow: 0 1px 3px rgba(110,90,50,.14);
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #161719;
-    --card: #1f2124;
-    --text: #e8e6e1;
-    --muted: #969aa3;
-    --border: #2c2e33;
-    --accent: #e05c52;
-    --accent-soft: #3a2321;
-    --shadow: 0 1px 3px rgba(0,0,0,.4);
+    --bg: #191611;         /* 暖夜 */
+    --card: #221e17;
+    --text: #e7e0d0;
+    --muted: #9a917c;
+    --border: #38321f;
+    --accent: #cf6b5e;
+    --accent-soft: #392823;
+    --shadow: 0 1px 3px rgba(0,0,0,.45);
   }
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body { margin: 0; padding: 0; }
 body {
-  background: var(--bg); color: var(--text);
+  background: var(--bg);
+  background-image: linear-gradient(180deg, rgba(255,252,242,.5), rgba(120,95,50,.05));
+  background-attachment: fixed;
+  color: var(--text);
   font: 15px/1.5 -apple-system, "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
   padding-bottom: calc(64px + env(safe-area-inset-bottom));
+}
+@media (prefers-color-scheme: dark) {
+  body { background-image: linear-gradient(180deg, rgba(60,50,30,.25), rgba(0,0,0,.2)); }
+}
+/* 古风标题字：楷体/宋体 */
+.tab-head b, .cal-head .title b, .card h4, .d-title b, .sub-head b,
+.poem-title, .poem-body, .agenda h4, .mini h4, .cell .solar, .lock-card b {
+  font-family: "Kaiti SC", "STKaiti", "KaiTi", "FZKai-Z03S", "Songti SC", "SimSun", serif;
 }
 button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; padding: 0; }
 input, select, textarea {
@@ -213,8 +224,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); }
 .poem-body {
   font-size: 16.5px; line-height: 2.15; color: var(--text);
   font-family: "Kaiti SC", "KaiTi", "STKaiti", "Songti SC", "SimSun", serif;
-}
-.poem-divider { border-top: 1px dashed var(--border); margin: 16px 24px 12px; }
+}.poem-divider { border-top: 1px dashed var(--border); margin: 16px 24px 12px; }
 .poem-tr { text-align: left; background: var(--bg); border-radius: 10px; padding: 10px 14px; }
 .poem-tr label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px; }
 .poem-tr p { margin: 0; font-size: 13.5px; line-height: 1.9; }

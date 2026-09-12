@@ -228,9 +228,10 @@ eq('节气顺序无重复', new Set(TERM_ORDER).size, 24);
 ok('养生文案短小（≤40字）', TERM_ORDER.every(t => TERM_TIPS[t].length <= 40));
 
 // ---------- 每日一诗 ----------
-ok('诗词库不少于60首', POEMS.length >= 60);
+eq('诗词库恰为300首', POEMS.length, 300);
 ok('每首诗字段完整', POEMS.every(p => p.t && p.a && p.d && p.k && Array.isArray(p.p) && p.p.length > 0 && p.p.every(l => typeof l === 'string') && p.tr && p.tr.length >= 10));
 ok('唐诗宋词兼备', POEMS.some(p => p.d === '唐') && POEMS.some(p => p.d === '宋'));
+ok('标题+作者组合不重复', new Set(POEMS.map(p => p.t + '|' + p.a + '|' + p.p[0])).size === POEMS.length);
 eq('每日一诗确定性（同日同诗）', poemOfTheDay('2026-09-13'), poemOfTheDay('2026-09-13'));
 ok('不同日期推荐不同', new Set(['2026-09-13', '2026-09-14', '2026-09-15', '2026-09-16', '2026-09-17', '2026-09-18'].map(poemOfTheDay)).size > 1);
 ok('随机换一首不重复当前', POEMS.every((_, i) => randomPoemIndex(i) !== i));
