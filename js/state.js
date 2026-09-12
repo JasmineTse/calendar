@@ -6,7 +6,6 @@ export const state = {
   view: 'month',              // month | week | year
   cursor: new Date(),         // 当前浏览的年月
   selected: toKey(new Date()),// 当前选中日期 'YYYY-MM-DD'
-  detailOpen: false,
   editorOpen: false,
   editingEventId: null,       // null=新建
   holidayStore: null,

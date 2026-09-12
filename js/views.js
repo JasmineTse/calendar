@@ -173,6 +173,7 @@ export function renderCalendarTab(el) {
     </header>
     ${weekHeaderHtml()}
     ${state.view === 'month' ? monthGridHtml() : state.view === 'week' ? weekViewHtml() : yearViewHtml()}
+    ${dayPanelHtml(state.selected)}
     <button class="fab" data-action="add-event" data-key="${state.selected}" title="添加日程">＋</button>
   `;
 }
@@ -182,10 +183,11 @@ function chipHtml(name, key, kind) {
   return `<span class="fchip ${kind}">${esc(name)}<button class="fadd" data-action="festival-to-event" data-name="${esc(name)}" data-key="${key}" title="设为每年提醒">＋</button></span>`;
 }
 
-export function detailHtml(key) {
+// 当日详情：内联显示在日历下方（不再弹窗）
+export function dayPanelHtml(key) {
   const date = parseDate(key);
   const d = getDayDetail(date);
-  if (!d) return '<div class="sheet-card"><p>农历库未加载</p></div>';
+  if (!d) return '<section class="day-panel"><p class="empty">农历库未加载</p></section>';
   const data = get();
   const pc = classifyOf(key);
   const pr = period.predict(data.periods, data.settings.cycleLen, data.settings.periodLen, todayKey());
@@ -207,10 +209,8 @@ export function detailHtml(key) {
 
   const evs = events.getEventsForDate(key, data.events);
 
-  return `<div class="sheet-backdrop" data-action="detail-close"></div>
-  <div class="sheet-card">
+  return `<section class="day-panel">
     <div class="d-head">
-      <button class="icon-btn" data-action="detail-close">✕</button>
       <div class="d-title">
         <b>${d.y}年${d.m}月${d.d}日 星期${d.weekInCN}</b>
         <span>农历${d.monthCN}月${d.dayCN}${d.festivals.length ? ' · ' + d.festivals.map(esc).join(' · ') : ''}</span>
@@ -260,11 +260,7 @@ export function detailHtml(key) {
       </div>
       <p class="disclaimer">民俗内容，仅供参考</p>
     </div>
-  </div>`;
-}
-
-export function renderDetail(root) {
-  root.innerHTML = state.detailOpen ? detailHtml(state.selected) : '';
+  </section>`;
 }
 
 // ---------- 日程编辑 ----------
@@ -440,9 +436,9 @@ export function historyHtml() {
   }).join('');
   return `<div class="subpage">
     <header class="sub-head">
-      <button class="back-btn" data-action="history-close">‹ 返回</button>
       <b>历史记录</b>
       <span class="muted">共 ${all.length} 次</span>
+      <button class="back-btn" data-action="history-close">‹ 返回</button>
     </header>
     <div class="sub-body">
       <div class="card">${rows || '<div class="empty">暂无记录</div>'}</div>

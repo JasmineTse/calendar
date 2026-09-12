@@ -8,7 +8,7 @@ import { makeEvent } from './events.js';
 import { state } from './state.js';
 import {
   renderCalendarTab, renderPeriodTab, renderSettingsTab,
-  renderDetail, renderEditor, renderPicker, pickerHtml, lockHtml, historyHtml,
+  renderEditor, renderPicker, pickerHtml, lockHtml, historyHtml,
   showMsg, esc, sha256hex
 } from './views.js';
 import { requestPermission, permissionState, tick, startLoop } from './notify.js';
@@ -26,8 +26,7 @@ function render() {
     else el.hidden = true;
   }
   document.querySelectorAll('.tabbar button').forEach(b => b.classList.toggle('on', b.dataset.tab === state.tab));
-  renderDetail($('overlay-root'));
-  if (!state.detailOpen) renderEditor($('overlay-root'));
+  renderEditor($('overlay-root'));
   const pr = $('picker-root');
   if (pickerOpen) pr.innerHTML = pickerHtml();
   else if (pr.dataset.open === '1') pr.innerHTML = '';
@@ -36,7 +35,6 @@ function render() {
 }
 
 function closeOverlays() {
-  state.detailOpen = false;
   state.editorOpen = false;
   state.editingEventId = null;
   state.historyOpen = false;
@@ -49,6 +47,38 @@ function closeOverlays() {
 function gotoToday() {
   state.cursor = new Date();
   state.selected = todayKey();
+}
+
+// 按 current view 步进：月视图翻月、周视图翻周、年视图翻年
+function navigate(dir) {
+  if (state.tab !== 'calendar') return;
+  if (state.view === 'month') state.cursor = addMonths(state.cursor, dir);
+  else if (state.view === 'week') {
+    state.selected = toKey(addDays(parseDate(state.selected), dir * 7));
+    state.cursor = parseDate(state.selected);
+  } else {
+    state.cursor = new Date(state.cursor.getFullYear() + dir, state.cursor.getMonth(), 1);
+  }
+  render();
+}
+
+// 触摸滑动翻页：水平位移足够大且明显大于纵向位移时触发（不影响点按与滚动）
+function attachSwipe(el) {
+  let sx = 0, sy = 0, st = 0;
+  el.addEventListener('touchstart', e => {
+    if (e.touches.length !== 1) return;
+    sx = e.touches[0].clientX;
+    sy = e.touches[0].clientY;
+    st = Date.now();
+  }, { passive: true });
+  el.addEventListener('touchend', e => {
+    const t = e.changedTouches[0];
+    if (!t) return;
+    const dx = t.clientX - sx, dy = t.clientY - sy;
+    if (Date.now() - st > 800) return;                        // 长按不算滑动
+    if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return; // 位移不足或纵向为主
+    navigate(dx < 0 ? 1 : -1);                                // 左滑下一个，右滑上一个
+  }, { passive: true });
 }
 
 function rebuildHolidayStore() {
@@ -73,7 +103,7 @@ async function run(action, btn) {
   switch (action) {
     case 'tab': {
       state.tab = ds.tab;
-      if (state.detailOpen || state.editorOpen || pickerOpen) closeOverlays();
+      if (state.editorOpen || pickerOpen || state.historyOpen) closeOverlays();
       render();
       break;
     }
@@ -82,18 +112,9 @@ async function run(action, btn) {
       render();
       break;
 
-    case 'nav': {
-      const dir = parseInt(ds.dir, 10);
-      if (state.view === 'month') state.cursor = addMonths(state.cursor, dir);
-      else if (state.view === 'week') {
-        state.selected = toKey(addDays(parseDate(state.selected), dir * 7));
-        state.cursor = parseDate(state.selected);
-      } else {
-        state.cursor = new Date(state.cursor.getFullYear() + dir, state.cursor.getMonth(), 1);
-      }
-      render();
+    case 'nav':
+      navigate(parseInt(ds.dir, 10));
       break;
-    }
     case 'today':
       gotoToday();
       closeOverlays();
@@ -141,11 +162,13 @@ async function run(action, btn) {
 
     case 'open-day':
       state.selected = ds.key;
-      state.detailOpen = true;
       state.editorOpen = false;
       render();
+      {
+        const panel = document.querySelector('.day-panel');
+        if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
       break;
-    case 'detail-close': state.detailOpen = false; render(); break;
     case 'detail-nav': {
       state.selected = toKey(addDays(parseDate(state.selected), parseInt(ds.dir, 10)));
       const sel = parseDate(state.selected);
@@ -158,13 +181,11 @@ async function run(action, btn) {
       if (ds.key) state.selected = ds.key;
       state.editorOpen = true;
       state.editingEventId = null;
-      state.detailOpen = false;
       render();
       break;
     case 'edit-event':
       state.editorOpen = true;
       state.editingEventId = ds.id;
-      state.detailOpen = false;
       render();
       break;
     case 'editor-close':
@@ -477,6 +498,9 @@ async function boot() {
 
   // 通知循环
   startLoop();
+
+  // 日历主页面左右滑动切换月/周/年
+  attachSwipe(document.getElementById('view-calendar'));
 
   // 申请持久存储，降低系统自动清理本地数据的风险（对 iOS 尤其重要）
   try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) { /* 忽略 */ }

@@ -74,15 +74,16 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); }
 .month-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
 .cell {
   position: relative; display: flex; flex-direction: column; align-items: center;
-  min-height: 62px; padding: 5px 1px 3px; border-radius: 10px;
+  height: 66px; padding: 5px 1px 3px; border-radius: 10px; overflow: hidden;
   background: var(--card); border: 1px solid transparent; box-shadow: var(--shadow);
 }
 .cell .solar { font-size: 17px; font-weight: 600; line-height: 1.25; }
 .cell.red .solar { color: var(--red); }
 .cell.workday .solar { color: var(--orange); }
 .cell .sub {
-  font-size: 10.5px; color: var(--muted); max-width: 100%;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.4;
+  font-size: 10.5px; color: var(--muted); max-width: 100%; text-align: center;
+  line-height: 1.3; overflow: hidden; word-break: break-all;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
 }
 .cell .sub.kind-festival { color: var(--accent); }
 .cell .sub.kind-jieqi { color: var(--green); }
@@ -168,7 +169,10 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); }
 .file-btn { position: relative; overflow: hidden; display: inline-flex; align-items: center; }
 .file-btn input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
 
-/* ---------- 详情页 / 编辑页（底部抽屉） ---------- */
+/* ---------- 当日详情（内联在日历下方） ---------- */
+.day-panel { margin-top: 12px; }
+.d-head { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
+/* ---------- 编辑页（底部抽屉） ---------- */
 .sheet-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.42); z-index: 20; animation: fadein .18s ease; }
 .sheet-card {
   position: fixed; left: 50%; transform: translateX(-50%);
@@ -251,7 +255,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); }
 }
 .sub-head { display: flex; align-items: center; gap: 12px; padding: 14px 14px 12px; border-bottom: 1px solid var(--border); }
 .sub-head b { font-size: 18px; }
-.back-btn { color: var(--accent); font-size: 14.5px; padding: 4px 8px 4px 0; }
+.back-btn { color: var(--accent); font-size: 14.5px; padding: 4px 0 4px 8px; margin-left: auto; }
 .sub-body { flex: 1; overflow-y: auto; padding: 12px 14px calc(24px + env(safe-area-inset-bottom)); }
 
 /* ---------- 表单 ---------- */
@@ -283,6 +287,6 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); }
 .lock-err { color: var(--red); font-size: 12.5px; min-height: 18px; margin: 0; }
 
 @media (min-width: 480px) {
-  .cell { min-height: 70px; }
+  .cell { height: 74px; }
   .cell .solar { font-size: 18px; }
 }
