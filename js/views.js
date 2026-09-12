@@ -4,6 +4,7 @@ import { get, uid } from './store.js';
 import * as period from './period.js';
 import * as events from './events.js';
 import { getDayDetail, cellLabel } from './lunar-adapter.js';
+import { TERM_TIPS } from './tips.js';
 import { state } from './state.js';
 
 export function esc(s) {
@@ -224,6 +225,11 @@ export function dayPanelHtml(key) {
       </div>
       <p class="disclaimer">民俗内容，仅供参考</p>
     </div>
+    ${(() => {
+      const term = d.jieqi || d.prevJieqi || '';
+      const tip = TERM_TIPS[term];
+      return tip ? `<div class="card tip-card"><h4>节气养生 · ${esc(term)}</h4><p class="tip">${esc(tip)}</p></div>` : '';
+    })()}
   </section>`;
 }
 

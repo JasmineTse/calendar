@@ -5,6 +5,7 @@ import * as period from '../js/period.js';
 import { makeEvent, occurrencesInRange, getEventsForDate } from '../js/events.js';
 import { getDayDetail, cellLabel } from '../js/lunar-adapter.js';
 import { parseTimor, parseHolidayCN, mergeOverride, fetchYearData } from '../js/holiday-sync.js';
+import { TERM_TIPS, TERM_ORDER } from '../js/tips.js';
 
 const out = [];
 let pass = 0, fail = 0;
@@ -219,6 +220,11 @@ const json = await fetch('../data/holidays.json').then(r => r.json());
     globalThis.fetch = origFetch;
   }
 }
+
+// ---------- 节气养生 ----------
+eq('节气养生覆盖24节气', TERM_ORDER.filter(t => TERM_TIPS[t] && TERM_TIPS[t].length >= 8).length, 24);
+eq('节气顺序无重复', new Set(TERM_ORDER).size, 24);
+ok('养生文案短小（≤40字）', TERM_ORDER.every(t => TERM_TIPS[t].length <= 40));
 
 // ---------- 输出 ----------
 document.getElementById('out').innerHTML = out.join('\n');

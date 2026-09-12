@@ -12,6 +12,7 @@ const CORE = [
   'js/period.js',
   'js/events.js',
   'js/lunar-adapter.js',
+  'js/tips.js',
   'js/notify.js',
   'js/state.js',
   'js/views.js',

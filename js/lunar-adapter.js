@@ -52,8 +52,16 @@ export function getDayDetail(date) {
     return tryFn(() => lunar.getDayChongDesc(), '');
   })();
 
+  // 当前所处的节气（含当天为节气日的情形），供节气养生展示
+  let prevJieqi = '';
+  try {
+    const pj = lunar.getPrevJieQi();
+    if (pj && typeof pj.getName === 'function') prevJieqi = pj.getName() || '';
+  } catch (e) { /* 忽略 */ }
+
   return {
     y: solar.getYear(), m: solar.getMonth(), d: solar.getDay(),
+    prevJieqi,
     week: solar.getWeek(), weekInCN: tryFn(() => solar.getWeekInChinese(), ''),
     lunarYearCN: tryFn(() => lunar.getYearInChinese(), ''),
     monthCN: monthStr,

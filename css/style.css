@@ -202,6 +202,8 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); }
 .yj.yi { background: rgba(58,166,117,.1); } .yj.yi label { background: var(--green); }
 .yj.ji { background: rgba(212,72,62,.08); } .yj.ji label { background: var(--red); }
 .almanac { border-top: 1px dashed var(--border); padding-top: 6px; }
+.tip-card .tip { margin: 0; font-size: 13.5px; line-height: 1.8; color: var(--text); }
+.tip-card h4 { color: var(--green); }
 
 /* ---------- 日程行 ---------- */
 .ev-row { display: flex; align-items: flex-start; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--border); }
