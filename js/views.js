@@ -183,31 +183,16 @@ function chipHtml(name, key, kind) {
   return `<span class="fchip ${kind}">${esc(name)}<button class="fadd" data-action="festival-to-event" data-name="${esc(name)}" data-key="${key}" title="设为每年提醒">＋</button></span>`;
 }
 
-// 当日详情：内联显示在日历下方（不再弹窗）
+// 当日详情：内联显示在日历下方（只展示黄历宜忌）
 export function dayPanelHtml(key) {
   const date = parseDate(key);
   const d = getDayDetail(date);
   if (!d) return '<section class="day-panel"><p class="empty">农历库未加载</p></section>';
-  const data = get();
-  const pc = classifyOf(key);
-  const pr = period.predict(data.periods, data.settings.cycleLen, data.settings.periodLen, todayKey());
-  const status = period.dayStatusText(key, pc, pr);
 
   const chips = (d.festivals || []).map(f => chipHtml(f, key, 'f')).join('')
     + (d.jieqi ? chipHtml(d.jieqi, key, 'j') : '');
 
   const kv = (k, v) => v ? `<div class="kv"><span>${k}</span><b>${esc(v)}</b></div>` : '';
-
-  // 生理期操作按钮
-  let pbtns = '';
-  const openRec = period.normalizePeriods(data.periods).filter(p => !p.end).pop();
-  if (openRec && key >= openRec.start) {
-    pbtns = `<button class="btn primary sm" data-action="period-end" data-key="${key}">记录经期结束（至这天）</button>`;
-  } else {
-    pbtns = `<button class="btn primary sm" data-action="period-start" data-key="${key}">标记这天为经期开始</button>`;
-  }
-
-  const evs = events.getEventsForDate(key, data.events);
 
   return `<section class="day-panel">
     <div class="d-head">
@@ -219,27 +204,6 @@ export function dayPanelHtml(key) {
       <button class="icon-btn" data-action="detail-nav" data-dir="1">›</button>
     </div>
     ${chips ? `<div class="chips">${chips}</div>` : ''}
-    <div class="card period-mini">
-      <div class="p-status"><span class="pdot ${pc.kind || 'none'}"></span>${esc(status)}</div>
-      ${pr.nextStart && pc.kind !== 'period' ? `<div class="p-sub">下次经期预测 ${cnMD(pr.nextStart)} · 排卵日 ${cnMD(pr.ovulation)}</div>` : ''}
-      <div class="p-btns">${pbtns}<a class="btn ghost sm" href="#" data-action="tab" data-tab="period">管理生理期</a></div>
-    </div>
-    <div class="card">
-      <h4>日程</h4>
-      ${evs.length ? evs.map(ev => {
-        const cat = events.CATEGORIES[ev.category] || events.CATEGORIES.other;
-        const time = ev.startTime ? esc(ev.startTime) + (ev.endTime ? ' – ' + esc(ev.endTime) : '') : '全天';
-        return `<div class="ev-row ${ev.done ? 'done' : ''}">
-          <button class="check ${ev.done ? 'on' : ''}" data-action="toggle-done" data-id="${ev.id}">${ev.done ? '✓' : ''}</button>
-          <div class="ev-main" data-action="edit-event" data-id="${ev.id}">
-            <div class="ev-title">${esc(ev.title)}</div>
-            <div class="ev-meta"><i class="dot" style="background:${cat.color}"></i>${cat.label} · ${time}</div>
-          </div>
-          <button class="icon-btn" data-action="del-event" data-id="${ev.id}">🗑</button>
-        </div>`;
-      }).join('') : '<div class="empty">暂无日程</div>'}
-      <button class="btn ghost sm" data-action="add-event" data-key="${key}">＋ 添加日程</button>
-    </div>
     <div class="card">
       <h4>黄历 · 宜忌</h4>
       <div class="yiji">
