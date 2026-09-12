@@ -7,7 +7,7 @@ import { getDayDetail, cellLabel } from '../js/lunar-adapter.js';
 import { parseTimor, parseHolidayCN, mergeOverride, fetchYearData } from '../js/holiday-sync.js';
 import { TERM_TIPS, TERM_ORDER } from '../js/tips.js';
 import { POEMS, poemOfTheDay, randomPoemIndex } from '../js/poems.js';
-import { ZODIAC, generateFortune } from '../js/zodiac.js';
+import { WHYS, whyOfTheDay, randomWhyIndex } from '../js/whys.js';
 
 const out = [];
 let pass = 0, fail = 0;
@@ -237,15 +237,12 @@ eq('每日一诗确定性（同日同诗）', poemOfTheDay('2026-09-13'), poemOf
 ok('不同日期推荐不同', new Set(['2026-09-13', '2026-09-14', '2026-09-15', '2026-09-16', '2026-09-17', '2026-09-18'].map(poemOfTheDay)).size > 1);
 ok('随机换一首不重复当前', POEMS.every((_, i) => randomPoemIndex(i) !== i));
 
-// ---------- 星座运势 ----------
-eq('星座数量为12', ZODIAC.length, 12);
-ok('星座字段完整', ZODIAC.every(z => z.name && z.sym && z.range && z.elem));
-ok('运势文案长度200-300', ZODIAC.every((_, i) =>
-  ['2026-09-13', '2026-09-14', '2026-09-15', '2026-09-16', '2026-09-17', '2026-12-31', '2027-01-01']
-    .every(d => { const t = generateFortune(i, d).text; return t.length >= 200 && t.length <= 300; })));
-eq('运势按日期确定性', generateFortune(3, '2026-09-13').text, generateFortune(3, '2026-09-13').text);
-ok('同日各星座运势互不相同', new Set(ZODIAC.map((_, i) => generateFortune(i, '2026-09-13').text)).size === 12);
-ok('星级在2-5之间', ZODIAC.every((_, i) => Object.values(generateFortune(i, '2026-09-13').ratings).every(n => n >= 2 && n <= 5)));
+// ---------- 十万个为什么 ----------
+eq('为什么问题为10个', WHYS.length, 10);
+ok('每问字段完整且答案充实', WHYS.every(w => w.q && w.cat && w.a && w.a.length >= 80));
+eq('每日一问确定性（同日同问）', whyOfTheDay('2026-09-13'), whyOfTheDay('2026-09-13'));
+ok('不同日期推荐不同', new Set(['2026-09-13', '2026-09-14', '2026-09-15', '2026-09-16'].map(whyOfTheDay)).size > 1);
+ok('随机换一个不重复当前', WHYS.every((_, i) => randomWhyIndex(i) !== i));
 
 // ---------- 输出 ----------
 document.getElementById('out').innerHTML = out.join('\n');

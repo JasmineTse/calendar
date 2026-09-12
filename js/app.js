@@ -7,11 +7,12 @@ import * as period from './period.js';
 import { makeEvent } from './events.js';
 import { state } from './state.js';
 import {
-  renderCalendarTab, renderPeriodTab, renderSettingsTab, renderPoemTab, renderZodiacTab,
+  renderCalendarTab, renderPeriodTab, renderSettingsTab, renderPoemTab, renderWhyTab,
   renderEditor, renderPicker, pickerHtml, lockHtml, historyHtml,
   showMsg, esc, sha256hex
 } from './views.js';
 import { randomPoemIndex } from './poems.js';
+import { randomWhyIndex } from './whys.js';
 import { requestPermission, permissionState, tick, startLoop } from './notify.js';
 
 let pickerOpen = false;
@@ -20,7 +21,7 @@ let locked = false;
 const $ = id => document.getElementById(id);
 
 function render() {
-  const tabs = { calendar: renderCalendarTab, poem: renderPoemTab, zodiac: renderZodiacTab, period: renderPeriodTab, settings: renderSettingsTab };
+  const tabs = { calendar: renderCalendarTab, poem: renderPoemTab, why: renderWhyTab, period: renderPeriodTab, settings: renderSettingsTab };
   for (const [name, fn] of Object.entries(tabs)) {
     const el = $('view-' + name);
     if (state.tab === name) { el.hidden = false; if (!(name === 'period' && locked)) fn(el); }
@@ -413,11 +414,10 @@ async function run(action, btn) {
       break;
     }
 
-    case 'zodiac-select': {
-      const d = get();
-      d.settings.zodiacSign = parseInt(ds.idx, 10) || 0;
-      save();
-      renderZodiacTab($('view-zodiac'));
+    case 'why-shuffle': {
+      state.whyIdx = randomWhyIndex(state.whyIdx);
+      state.whyDaily = false;
+      renderWhyTab($('view-why'));
       break;
     }
     case 'poem-shuffle': {

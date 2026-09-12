@@ -43,7 +43,7 @@ body {
 }
 /* 古风标题字：楷体/宋体 */
 .tab-head b, .cal-head .title b, .card h4, .d-title b, .sub-head b,
-.poem-title, .poem-body, .agenda h4, .mini h4, .cell .solar, .lock-card b {
+.poem-title, .poem-body, .agenda h4, .mini h4, .cell .solar, .lock-card b, .why-q {
   font-family: "Kaiti SC", "STKaiti", "KaiTi", "FZKai-Z03S", "Songti SC", "SimSun", serif;
 }
 button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; padding: 0; }
@@ -229,29 +229,12 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); }
 .poem-tr label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px; }
 .poem-tr p { margin: 0; font-size: 13.5px; line-height: 1.9; }
 
-/* ---------- 星座运势 ---------- */
-.zg-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
-.zg-cell {
-  display: flex; flex-direction: column; align-items: center; gap: 2px;
-  background: var(--card); border: 1px solid var(--border); border-radius: 10px;
-  padding: 9px 0 7px; font-size: 12px; color: var(--muted); box-shadow: var(--shadow);
-}
-.zg-cell .zg-sym { font-size: 19px; line-height: 1.2; color: var(--text); }
-.zg-cell.on { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
-.zg-cell.on .zg-sym { color: var(--accent); }
-.zg-head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
-.zg-big { font-size: 36px; line-height: 1; color: var(--accent); }
-.zg-head b { font-size: 19px; display: block; }
-.zg-head span { font-size: 12px; color: var(--muted); display: block; margin-top: 2px; }
-.zg-rates { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; margin-bottom: 10px; }
-.zg-rate { display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; color: var(--muted); }
-.zg-rate b { color: var(--accent); letter-spacing: 1px; font-weight: 400; }
-.zg-lucky {
-  display: flex; gap: 6px 14px; flex-wrap: wrap; font-size: 12.5px; color: var(--muted);
-  background: var(--bg); border-radius: 8px; padding: 8px 12px; margin-bottom: 10px;
-}
-.zg-lucky b { color: var(--text); font-weight: 500; }
-.zg-text { margin: 0; font-size: 14px; line-height: 1.95; text-align: justify; }
+/* ---------- 十万个为什么 ---------- */
+.why-card { padding-bottom: 12px; }
+.why-q { margin: 12px 0 12px; font-size: 19px; line-height: 1.6; }
+.why-a { text-align: left; background: var(--bg); border-radius: 10px; padding: 10px 14px; }
+.why-a label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px; }
+.why-a p { margin: 0; font-size: 13.5px; line-height: 1.95; text-align: justify; }
 
 /* ---------- 日程行 ---------- */
 .ev-row { display: flex; align-items: flex-start; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--border); }

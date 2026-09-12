@@ -13,5 +13,7 @@ export const state = {
   editingPeriodId: null,
   historyOpen: false,          // 经期历史记录页是否打开
   poemIdx: null,               // 当前展示的诗词下标（null=按日期取每日一诗）
-  poemDaily: true              // 是否为当日推荐（false=用户随机换过）
+  poemDaily: true,             // 是否为当日推荐（false=用户随机换过）
+  whyIdx: null,                // 当前展示的"为什么"下标（null=按日期取每日一问）
+  whyDaily: true               // 是否为当日推荐（false=用户随机换过）
 };

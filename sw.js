@@ -19,7 +19,7 @@ const CORE = [
   'js/poems-part3.js',
   'js/poems-part4.js',
   'js/poems-part5.js',
-  'js/zodiac.js',
+  'js/whys.js',
   'js/notify.js',
   'js/state.js',
   'js/views.js',
