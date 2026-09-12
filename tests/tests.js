@@ -238,7 +238,7 @@ ok('不同日期推荐不同', new Set(['2026-09-13', '2026-09-14', '2026-09-15'
 ok('随机换一首不重复当前', POEMS.every((_, i) => randomPoemIndex(i) !== i));
 
 // ---------- 十万个为什么 ----------
-ok('问题池不少于20个', WHYS.length >= 20);
+eq('为什么问题池达到100个', WHYS.length, 100);
 ok('每问字段完整且答案充实', WHYS.every(w => w.q && w.cat && w.a && w.a.length >= 80));
 ok('问题不重复', new Set(WHYS.map(w => w.q)).size === WHYS.length);
 ok('随机下标在范围内且不重复当前', WHYS.every((_, i) => { const r = randomWhyIndex(i); return r >= 0 && r < WHYS.length && r !== i; }));
