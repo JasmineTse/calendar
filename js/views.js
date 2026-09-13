@@ -495,16 +495,6 @@ export function settingsTabHtml() {
     <p class="muted">日程到点与经期开始日会通过系统通知提醒。浏览器需保持本应用处于运行状态（安装为桌面应用后更可靠）。</p>
   </div>
   <div class="card">
-    <h4>犒劳作者</h4>
-    <p class="muted">如果这个万年历对你有用，可以请作者喝杯奶茶～ 全部功能免费，犒劳纯属自愿。</p>
-    <div class="kv"><span>支付宝账号</span><b>jasminetse@163.com</b></div>
-    <div class="form-btns">
-      <button class="btn primary sm" data-action="tip-copy">复制支付宝账号</button>
-      <button class="btn ghost sm" data-action="tip-open">打开支付宝</button>
-    </div>
-    <p class="muted">转账路径：打开支付宝 → 首页"转账" → 转到支付宝账户 → 粘贴上方账号 → 输入金额确认。</p>
-  </div>
-  <div class="card">
     <h4>法定节假日数据</h4>
     <div class="kv"><span>数据年份</span><b>${years}</b></div>
     <div class="kv"><span>数据来源</span><b>${data.holidaysOverride ? esc(data.holidaysOverride.source || '在线更新 / 导入') : '内置（国务院通知）'}</b></div>
@@ -523,6 +513,14 @@ export function settingsTabHtml() {
       <button class="btn ghost sm" data-action="data-export">导出备份</button>
       <label class="btn ghost sm file-btn">导入备份<input id="data-file" type="file" accept=".json,application/json"></label>
       <button class="btn danger sm" data-action="data-wipe">清空全部数据</button>
+    </div>
+  </div>
+  <div class="card tip-ds">
+    <h4>打赏作者</h4>
+    <p class="muted">觉得好用，可以请作者喝杯奶茶～ 支付宝账号 jasminetse@163.com</p>
+    <div class="form-btns">
+      <button class="btn ghost sm" data-action="tip-pay">支付宝支付</button>
+      <button class="btn ghost sm" data-action="tip-copy">复制账号</button>
     </div>
   </div>
   <div class="card">

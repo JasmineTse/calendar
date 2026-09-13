@@ -361,3 +361,9 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); }
 .splash-box b { font-size: 22px; letter-spacing: 6px; color: var(--accent); font-family: "Kaiti SC", "STKaiti", "KaiTi", serif; text-indent: 6px; }
 .splash-spin { width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: splashspin .8s linear infinite; }
 @keyframes splashspin { to { transform: rotate(360deg); } }
+
+/* ---------- 打赏作者（低调） ---------- */
+.tip-ds { padding: 10px 14px; }
+.tip-ds h4 { color: var(--muted); font-size: 12.5px; font-weight: 400; margin-bottom: 4px; }
+.tip-ds p { margin: 0; }
+.tip-ds .form-btns { margin-top: 8px; justify-content: flex-start; }
