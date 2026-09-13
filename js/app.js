@@ -1,4 +1,4 @@
-// 应用主控：启动、标签页、事件调度、日期选择器、应用锁、通知循环
+// 应用主控：启动、标签页、事件调度、日期选择器、通知循环
 import { toKey, parseDate, addDays, addMonths, todayKey } from './dates.js';
 import { get, save, uid, resetAll, exportData, importData } from './store.js';
 import { HolidayStore, validateHolidayJson } from './holidays.js';
@@ -7,13 +7,12 @@ import { makeEvent } from './events.js';
 import { state } from './state.js';
 import {
   renderCalendarTab, renderPeriodTab, renderSettingsTab, renderPoemTab, renderWhyTab, renderJiri,
-  renderEditor, renderPicker, pickerHtml, lockHtml, historyHtml,
-  showMsg, esc, sha256hex
+  renderEditor, renderPicker, pickerHtml, historyHtml,
+  showMsg, esc
 } from './views.js';
 import { requestPermission, permissionState, tick, startLoop } from './notify.js';
 
 let pickerOpen = false;
-let locked = false;
 
 const $ = id => document.getElementById(id);
 
@@ -21,7 +20,7 @@ function render() {
   const tabs = { calendar: renderCalendarTab, poem: renderPoemTab, why: renderWhyTab, period: renderPeriodTab, settings: renderSettingsTab };
   for (const [name, fn] of Object.entries(tabs)) {
     const el = $('view-' + name);
-    if (state.tab === name) { el.hidden = false; if (!(name === 'period' && locked)) fn(el); }
+    if (state.tab === name) { el.hidden = false; fn(el); }
     else el.hidden = true;
   }
   document.querySelectorAll('.tabbar button').forEach(b => b.classList.toggle('on', b.dataset.tab === state.tab));
@@ -330,6 +329,28 @@ async function run(action, btn) {
       break;
 
     // 设置
+    case 'tip-copy': {
+      const acc = 'jasminetse@163.com';
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(acc);
+          showMsg('支付宝账号已复制');
+        } else { throw new Error('no clipboard'); }
+      } catch (e) {
+        const ta = document.createElement('textarea');
+        ta.value = acc; ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); showMsg('支付宝账号已复制'); }
+        catch (e2) { showMsg('复制失败，请手动记录：' + acc, true); }
+        ta.remove();
+      }
+      break;
+    }
+    case 'tip-open': {
+      showMsg('正在尝试打开支付宝，未响应请手动打开并粘贴账号');
+      location.href = 'alipays://platformapi/startapp';
+      break;
+    }
     case 'notif-enable': {
       const r = await requestPermission();
       if (r === 'granted') { showMsg('通知已开启'); tick(); }
@@ -345,24 +366,6 @@ async function run(action, btn) {
         const n = new Notification('万年历', { body: '通知工作正常 ✓', icon: 'icons/icon.svg' });
         n.onclick = () => { window.focus(); n.close(); };
       } catch (e) { showMsg('通知发送失败：' + e.message, true); }
-      break;
-    }
-    case 'pin-save': {
-      const p1 = $('pin1').value, p2 = $('pin2').value;
-      if (!/^\d{4,8}$/.test(p1)) { showMsg('PIN 需为 4–8 位数字', true); break; }
-      if (p1 !== p2) { showMsg('两次输入的 PIN 不一致', true); break; }
-      data.settings.pinHash = await sha256hex(p1);
-      save();
-      render();
-      showMsg('应用锁已开启');
-      break;
-    }
-    case 'pin-clear': {
-      if (!confirm('关闭应用锁后，打开应用将不再需要 PIN。确定？')) break;
-      data.settings.pinHash = null;
-      save();
-      render();
-      showMsg('应用锁已关闭');
       break;
     }
     case 'holiday-sync': {
@@ -468,21 +471,6 @@ async function run(action, btn) {
     }
 
     // 锁屏
-    case 'lock-unlock': {
-      const v = $('lock-pin').value;
-      const h = await sha256hex(v);
-      if (h === data.settings.pinHash) {
-        locked = false;
-        $('lock-root').innerHTML = '';
-        render();
-        tick();
-      } else {
-        const err = $('lock-err');
-        if (err) err.textContent = 'PIN 不正确，请重试';
-        $('lock-pin').value = '';
-      }
-      break;
-    }
   }
 }
 
@@ -492,12 +480,6 @@ async function boot() {
 
   // 先渲染首屏，节假日数据随后异步补充
   rebuildHolidayStore();
-
-  // 应用锁
-  if (data.settings.pinHash) {
-    locked = true;
-    $('lock-root').innerHTML = lockHtml();
-  }
 
   render();
   const splash = document.getElementById('splash');

@@ -495,18 +495,14 @@ export function settingsTabHtml() {
     <p class="muted">日程到点与经期开始日会通过系统通知提醒。浏览器需保持本应用处于运行状态（安装为桌面应用后更可靠）。</p>
   </div>
   <div class="card">
-    <h4>应用锁</h4>
-    <div class="kv"><span>状态</span><b>${s.pinHash ? '已开启（启动时需输入 PIN）' : '未开启'}</b></div>
-    ${s.pinHash ? `
-      <div class="form-btns"><button class="btn danger sm" data-action="pin-clear">关闭应用锁</button></div>
-    ` : `
-      <div class="grid2">
-        <label>PIN（4–8 位数字）<input id="pin1" type="password" inputmode="numeric" maxlength="8" placeholder="····"></label>
-        <label>确认 PIN<input id="pin2" type="password" inputmode="numeric" maxlength="8" placeholder="····"></label>
-      </div>
-      <div class="form-btns"><button class="btn primary sm" data-action="pin-save">开启应用锁</button></div>
-      <p class="muted">PIN 仅以哈希保存在本机，忘记后只能通过"清空全部数据"重置。</p>
-    `}
+    <h4>犒劳作者</h4>
+    <p class="muted">如果这个万年历对你有用，可以请作者喝杯奶茶～ 全部功能免费，犒劳纯属自愿。</p>
+    <div class="kv"><span>支付宝账号</span><b>jasminetse@163.com</b></div>
+    <div class="form-btns">
+      <button class="btn primary sm" data-action="tip-copy">复制支付宝账号</button>
+      <button class="btn ghost sm" data-action="tip-open">打开支付宝</button>
+    </div>
+    <p class="muted">转账路径：打开支付宝 → 首页"转账" → 转到支付宝账户 → 粘贴上方账号 → 输入金额确认。</p>
   </div>
   <div class="card">
     <h4>法定节假日数据</h4>
@@ -663,31 +659,4 @@ export async function renderPoemTab(el) {
     </div>`;
 }
 
-// ---------- 锁屏 ----------
-export function lockHtml() {
-  return `<div class="lock">
-    <div class="lock-card">
-      <div class="lock-icon">🔒</div>
-      <b>万年历已锁定</b>
-      <input id="lock-pin" type="password" inputmode="numeric" maxlength="8" placeholder="输入 PIN 解锁">
-      <button class="btn primary" data-action="lock-unlock">解锁</button>
-      <p class="lock-err" id="lock-err"></p>
-    </div>
-  </div>`;
-}
-
-export async function sha256hex(s) {
-  try {
-    if (window.crypto && crypto.subtle) {
-      const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('wnl:' + s));
-      return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join('');
-    }
-  } catch (e) { /* 退回简单哈希 */ }
-  let h1 = 0, h2 = 0;
-  const str = 'wnl:' + s;
-  for (let i = 0; i < str.length; i++) {
-    h1 = (h1 * 31 + str.charCodeAt(i)) | 0;
-    h2 = (h2 * 17 + str.charCodeAt(i) + i) | 0;
-  }
-  return 'fb' + (h1 >>> 0).toString(16) + (h2 >>> 0).toString(16);
-}
+// ---------- 启动画面过渡（无应用锁） ----------
