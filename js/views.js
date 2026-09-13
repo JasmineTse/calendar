@@ -533,7 +533,7 @@ export function settingsTabHtml() {
     <h4>关于</h4>
     <p class="muted">万年历 v1.1.0（构建 2026-09-13）· 无广告 · 离线优先<br>
     农历与黄历数据由开源库 lunar-javascript 推算；节假日数据源自国务院办公厅公开通知。<br>
-    黄历宜忌等民俗内容仅供参考；生理期预测不作为医疗依据。</p>
+    黄历宜忌等民俗内容仅供参考；生理期预测不作为医疗依据。<br><a href="privacy.html" style="color:var(--blue)">隐私政策</a></p>
   </div>`;
 }
 

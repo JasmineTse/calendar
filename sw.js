@@ -3,6 +3,7 @@ const CACHE = 'wnl-cache-v2';
 const CORE = [
   './',
   'index.html',
+  'privacy.html',
   'css/style.css',
   'js/lib/lunar.js',
   'js/dates.js',
