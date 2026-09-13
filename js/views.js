@@ -5,10 +5,13 @@ import * as period from './period.js';
 import * as events from './events.js';
 import { getDayDetail, cellLabel } from './lunar-adapter.js';
 import { TERM_TIPS } from './tips.js';
-import { POEMS, poemOfTheDay } from './poems.js';
-import { WHYS, randomWhyIndex } from './whys.js';
-import { JIRI_CATS, findCat, findEvent, scanDays } from './jiri.js';
 import { state } from './state.js';
+
+// 非首页模块按需加载：首屏不解析诗词/问答/择吉日数据
+const _mods = {};
+export const loadPoems = () => _mods.poems || (_mods.poems = import('./poems.js'));
+export const loadWhys = () => _mods.whys || (_mods.whys = import('./whys.js'));
+export const loadJiri = () => _mods.jiri || (_mods.jiri = import('./jiri.js'));
 
 export function esc(s) {
   return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -537,9 +540,11 @@ export function settingsTabHtml() {
 export function renderSettingsTab(el) { el.innerHTML = settingsTabHtml(); }
 
 // ---------- 十万个为什么 ----------
-export function renderWhyTab(el) {
-  if (state.whyIdx == null) state.whyIdx = randomWhyIndex(-1);
-  const w = WHYS[state.whyIdx];
+export async function renderWhyTab(el) {
+  const m = await loadWhys();
+  if (state.tab !== 'why') return;
+  if (state.whyIdx == null) state.whyIdx = m.randomWhyIndex(-1);
+  const w = m.WHYS[state.whyIdx];
   const d = new Date();
   el.innerHTML = `
     <header class="tab-head"><b>十万个为什么</b><span class="muted">${d.getMonth() + 1}月${d.getDate()}日</span></header>
@@ -557,15 +562,26 @@ export function renderWhyTab(el) {
 }
 
 // ---------- 择吉日 ----------
-export function renderJiri() {
+export async function renderJiri() {
   const root = document.getElementById('jiri-root');
   if (!root) return;
   if (!state.jiriOpen) { root.innerHTML = ''; return; }
-  root.innerHTML = state.jiriPage === 'result' ? jiriResultHtml() : jiriEventsHtml();
+  if (state.jiriPage === 'result') root.innerHTML = jiriLoadingHtml();
+  const helpers = await loadJiri();
+  if (!state.jiriOpen) { root.innerHTML = ''; return; }
+  root.innerHTML = state.jiriPage === 'result' ? jiriResultHtml(state.jiriEventName, state.jiriStart, state.jiriEnd, state.jiriWeekendOnly, helpers) : jiriEventsHtml(state.jiriCat, helpers);
 }
 
-function jiriEventsHtml() {
-  const cat = findCat(state.jiriCat);
+// 结果页扫描期间的过渡提示
+function jiriLoadingHtml() {
+  return `<div class="subpage">
+    <header class="sub-head"><button class="back-btn" data-action="jiri-back">‹ 返回</button><b>择吉日</b><span class="muted">推算中…</span></header>
+    <div class="sub-body"><div class="empty">正在按黄历逐日推算，请稍候…</div></div>
+  </div>`;
+}
+
+function jiriEventsHtml(catKey, { JIRI_CATS, findCat }) {
+  const cat = findCat(catKey);
   const cats = JIRI_CATS.map(c =>
     `<button class="jiri-cat ${c.key === cat.key ? 'on' : ''}" data-action="jiri-cat" data-cat="${c.key}">${c.label}</button>`).join('');
   const events = cat.events.map(e =>
@@ -584,10 +600,10 @@ function jiriEventsHtml() {
   </div>`;
 }
 
-function jiriResultHtml() {
-  const found = findEvent(state.jiriEventName);
-  const ev = found ? found.event : { name: state.jiriEventName || '', yi: [] };
-  const results = scanDays(state.jiriStart, state.jiriEnd, ev, { weekendOnly: state.jiriWeekendOnly, holidayStore: state.holidayStore });
+function jiriResultHtml(name, startKey, endKey, weekendOnly, { findEvent, scanDays }) {
+  const found = findEvent(name);
+  const ev = found ? found.event : { name: name || '', yi: [] };
+  const results = scanDays(startKey, endKey, ev, { weekendOnly, holidayStore: state.holidayStore });
   const rows = results.map(r => {
     const d = parseDate(r.key);
     const wd = '周' + '日一二三四五六'[d.getDay()];
@@ -620,12 +636,14 @@ function jiriResultHtml() {
     </div>
   </div>`;
 }
-export function renderPoemTab(el) {
+export async function renderPoemTab(el) {
+  const m = await loadPoems();
+  if (state.tab !== 'poem') return; // 异步加载期间已切换页面
   if (state.poemIdx == null) {
-    const daily = poemOfTheDay(todayKey());
-    state.poemIdx = POEMS.indexOf(daily) >= 0 ? POEMS.indexOf(daily) : 0;
+    const daily = m.poemOfTheDay(todayKey());
+    state.poemIdx = m.POEMS.indexOf(daily) >= 0 ? m.POEMS.indexOf(daily) : 0;
   }
-  const p = POEMS[state.poemIdx];
+  const p = m.POEMS[state.poemIdx];
   const d = new Date();
   el.innerHTML = `
     <header class="tab-head"><b>有一诗</b><span class="muted">${d.getMonth() + 1}月${d.getDate()}日 · ${state.poemDaily ? '今日推荐' : '随机一诗'}</span></header>

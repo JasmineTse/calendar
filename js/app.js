@@ -2,7 +2,6 @@
 import { toKey, parseDate, addDays, addMonths, todayKey } from './dates.js';
 import { get, save, uid, resetAll, exportData, importData } from './store.js';
 import { HolidayStore, validateHolidayJson } from './holidays.js';
-import { syncHolidays, mergeOverride } from './holiday-sync.js';
 import * as period from './period.js';
 import { makeEvent } from './events.js';
 import { state } from './state.js';
@@ -11,8 +10,6 @@ import {
   renderEditor, renderPicker, pickerHtml, lockHtml, historyHtml,
   showMsg, esc, sha256hex
 } from './views.js';
-import { randomPoemIndex } from './poems.js';
-import { randomWhyIndex } from './whys.js';
 import { requestPermission, permissionState, tick, startLoop } from './notify.js';
 
 let pickerOpen = false;
@@ -372,14 +369,15 @@ async function run(action, btn) {
       btn.disabled = true;
       btn.textContent = '正在获取…';
       try {
-        const { ok, unpublished, errors } = await syncHolidays();
+        const hs = await import('./holiday-sync.js');
+        const { ok, unpublished, errors } = await hs.syncHolidays();
         if (!ok.length) {
           if (unpublished.length) showMsg(unpublished.join('、') + ' 年安排尚未公布（预计 11 月发布）', true);
           else showMsg('更新失败：' + (errors[0] || '网络不可用'), true);
           break;
         }
         const d = get();
-        d.holidaysOverride = mergeOverride(d.holidaysOverride, ok, todayKey());
+        d.holidaysOverride = hs.mergeOverride(d.holidaysOverride, ok, todayKey());
         save();
         rebuildHolidayStore();
         render();
@@ -458,12 +456,12 @@ async function run(action, btn) {
       renderJiri();
       break;
     case 'why-shuffle': {
-      state.whyIdx = randomWhyIndex(state.whyIdx);
+      state.whyIdx = (await import('./whys.js')).randomWhyIndex(state.whyIdx);
       renderWhyTab($('view-why'));
       break;
     }
     case 'poem-shuffle': {
-      state.poemIdx = randomPoemIndex(state.poemIdx);
+      state.poemIdx = (await import('./poems.js')).randomPoemIndex(state.poemIdx);
       state.poemDaily = false;
       renderPoemTab($('view-poem'));
       break;
@@ -492,11 +490,7 @@ async function run(action, btn) {
 async function boot() {
   const data = get();
 
-  // 内置节假日数据
-  try {
-    const r = await fetch('data/holidays.json');
-    if (r.ok) state._builtinHolidays = await r.json();
-  } catch (e) { /* file:// 下会失败，降级为无内置数据 */ }
+  // 先渲染首屏，节假日数据随后异步补充
   rebuildHolidayStore();
 
   // 应用锁
@@ -506,6 +500,18 @@ async function boot() {
   }
 
   render();
+  const splash = document.getElementById('splash');
+  if (splash) { splash.classList.add('hide'); setTimeout(() => splash.remove(), 300); }
+
+  // 内置节假日数据：网络请求不阻塞首屏
+  try {
+    const r = await fetch('data/holidays.json');
+    if (r.ok) {
+      state._builtinHolidays = await r.json();
+      rebuildHolidayStore();
+      render();
+    }
+  } catch (e) { /* 离线或 file:// 下降级为无内置数据 */ }
 
   // 事件委托
   document.body.addEventListener('click', e => {

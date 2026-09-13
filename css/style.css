@@ -348,3 +348,16 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); }
   .cell { height: 74px; }
   .cell .solar { font-size: 18px; }
 }
+
+/* ---------- 启动画面 ---------- */
+#splash {
+  position: fixed; inset: 0; z-index: 200;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg); transition: opacity .25s ease;
+}
+#splash.hide { opacity: 0; pointer-events: none; }
+.splash-box { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.splash-icon { width: 84px; height: 84px; }
+.splash-box b { font-size: 22px; letter-spacing: 6px; color: var(--accent); font-family: "Kaiti SC", "STKaiti", "KaiTi", serif; text-indent: 6px; }
+.splash-spin { width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: splashspin .8s linear infinite; }
+@keyframes splashspin { to { transform: rotate(360deg); } }

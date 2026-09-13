@@ -14,8 +14,16 @@
   <link rel="icon" href="icons/icon-192.png" type="image/png">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <link rel="stylesheet" href="css/style.css">
+  <link rel="preload" href="js/lib/lunar.js" as="script">
 </head>
 <body>
+  <div id="splash">
+    <div class="splash-box">
+      <svg class="splash-icon" viewBox="0 0 512 512"><rect width="512" height="512" rx="104" fill="#a83f39"/><rect x="96" y="120" width="320" height="300" rx="28" fill="#ffffff"/><path d="M96 148c0-15.5 12.5-28 28-28h264c15.5 0 28 12.5 28 28v52H96z" fill="#8f2e26"/><rect x="160" y="64" width="26" height="88" rx="13" fill="#8f2e26"/><rect x="326" y="64" width="26" height="88" rx="13" fill="#8f2e26"/><text x="256" y="368" font-family="'PingFang SC','Microsoft YaHei',sans-serif" font-size="140" font-weight="700" text-anchor="middle" fill="#a83f39">历</text></svg>
+      <b>万年历</b>
+      <span class="splash-spin"></span>
+    </div>
+  </div>
   <div class="app">
     <main id="view-calendar" class="tab-view"></main>
     <main id="view-poem" class="tab-view" hidden></main>
@@ -53,7 +61,7 @@
     </button>
   </nav>
 
-  <script src="js/lib/lunar.js"></script>
+  <script defer src="js/lib/lunar.js"></script>
   <script type="module" src="js/app.js"></script>
 </body>
 </html>
