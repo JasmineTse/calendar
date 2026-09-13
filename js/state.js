@@ -14,5 +14,12 @@ export const state = {
   historyOpen: false,          // 经期历史记录页是否打开
   poemIdx: null,               // 当前展示的诗词下标（null=按日期取每日一诗）
   poemDaily: true,             // 是否为当日推荐（false=用户随机换过）
-  whyIdx: null                 // 当前展示的"为什么"下标（null=打开时随机）
+  whyIdx: null,                // 当前展示的"为什么"下标（null=打开时随机）
+  jiriOpen: false,             // 择吉日子页面是否打开
+  jiriPage: 'events',          // events=选择事件 | result=吉日结果
+  jiriCat: 'hot',              // 当前事件类别
+  jiriEventName: null,         // 当前选中事件名
+  jiriStart: null,             // 查询范围开始
+  jiriEnd: null,               // 查询范围结束
+  jiriWeekendOnly: false       // 只看周末和节假日
 };

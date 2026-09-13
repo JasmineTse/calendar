@@ -7,6 +7,7 @@ import { getDayDetail, cellLabel } from './lunar-adapter.js';
 import { TERM_TIPS } from './tips.js';
 import { POEMS, poemOfTheDay } from './poems.js';
 import { WHYS, randomWhyIndex } from './whys.js';
+import { JIRI_CATS, findCat, findEvent, scanDays } from './jiri.js';
 import { state } from './state.js';
 
 export function esc(s) {
@@ -213,7 +214,7 @@ export function dayPanelHtml(key) {
       return tip ? `<div class="card tip-card"><h4>节气养生 · ${esc(term)}</h4><p class="tip">${esc(tip)}</p></div>` : '';
     })()}
     <div class="card">
-      <h4>黄历 · 宜忌</h4>
+      <div class="card-head"><h4>黄历 · 宜忌</h4><button class="link" data-action="open-jiri">择吉日</button></div>
       <div class="yiji">
         <div class="yj yi"><label>宜</label><div>${d.yi.length ? d.yi.map(esc).join(' · ') : '——'}</div></div>
         <div class="yj ji"><label>忌</label><div>${d.ji.length ? d.ji.map(esc).join(' · ') : '——'}</div></div>
@@ -555,7 +556,70 @@ export function renderWhyTab(el) {
     </div>`;
 }
 
-// ---------- 有一诗 ----------
+// ---------- 择吉日 ----------
+export function renderJiri() {
+  const root = document.getElementById('jiri-root');
+  if (!root) return;
+  if (!state.jiriOpen) { root.innerHTML = ''; return; }
+  root.innerHTML = state.jiriPage === 'result' ? jiriResultHtml() : jiriEventsHtml();
+}
+
+function jiriEventsHtml() {
+  const cat = findCat(state.jiriCat);
+  const cats = JIRI_CATS.map(c =>
+    `<button class="jiri-cat ${c.key === cat.key ? 'on' : ''}" data-action="jiri-cat" data-cat="${c.key}">${c.label}</button>`).join('');
+  const events = cat.events.map(e =>
+    `<button class="jiri-item" data-action="jiri-event" data-name="${esc(e.name)}">${esc(e.name)}</button>`).join('');
+  return `<div class="subpage">
+    <header class="sub-head">
+      <b>择吉日</b>
+      <span class="muted">按黄历"宜"事项推算</span>
+      <button class="back-btn" data-action="jiri-close">关闭</button>
+    </header>
+    <div class="sub-body">
+      <div class="jiri-cats">${cats}</div>
+      <div class="jiri-events">${events}</div>
+      <p class="disclaimer">选择想办的事情，查看近几个月黄历标注"宜"的日子</p>
+    </div>
+  </div>`;
+}
+
+function jiriResultHtml() {
+  const found = findEvent(state.jiriEventName);
+  const ev = found ? found.event : { name: state.jiriEventName || '', yi: [] };
+  const results = scanDays(state.jiriStart, state.jiriEnd, ev, { weekendOnly: state.jiriWeekendOnly, holidayStore: state.holidayStore });
+  const rows = results.map(r => {
+    const d = parseDate(r.key);
+    const wd = '周' + '日一二三四五六'[d.getDay()];
+    const det = getDayDetail(d);
+    const badge = r.holiday ? '<span class="badge rest">假</span>' : (r.weekend ? '<span class="badge rest">末</span>' : '');
+    return `<button class="jiri-day" data-action="open-day" data-key="${r.key}">
+      <div class="jd-left"><b>${parseInt(r.key.slice(5, 7), 10)}月${parseInt(r.key.slice(8, 10), 10)}日</b><span>周${'日一二三四五六'[d.getDay()]} · 农历${det ? det.monthCN + '月' + det.dayCN : ''}${badge}</span></div>
+      <div class="jd-yi">宜 ${esc(r.yi.join('、'))}</div>
+    </button>`;
+  }).join('');
+  return `<div class="subpage">
+    <header class="sub-head">
+      <button class="back-btn" data-action="jiri-back">‹ 返回</button>
+      <b>${esc(ev.name)}</b>
+      <span class="muted">宜 ${results.length} 天</span>
+    </header>
+    <div class="sub-body">
+      <div class="card">
+        <div class="grid2">
+          <label>开始日期<input id="jiri-start" type="date" value="${state.jiriStart || ''}"></label>
+          <label>结束日期<input id="jiri-end" type="date" value="${state.jiriEnd || ''}"></label>
+        </div>
+        <div class="stepper-row"><span>只看周末和节假日</span>
+          <button class="toggle ${state.jiriWeekendOnly ? 'on' : ''}" data-action="jiri-weekend"><i></i></button>
+        </div>
+        <div class="form-btns"><button class="btn primary sm" data-action="jiri-range">查询</button></div>
+      </div>
+      <div class="card">${rows || '<div class="empty">这个时间范围内没有找到宜做此事的日子，试试扩大范围或取消筛选</div>'}</div>
+      <p class="disclaimer">基于黄历"宜"事项推算，民俗内容仅供参考；点击日期可查看当日详情</p>
+    </div>
+  </div>`;
+}
 export function renderPoemTab(el) {
   if (state.poemIdx == null) {
     const daily = poemOfTheDay(todayKey());

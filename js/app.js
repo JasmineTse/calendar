@@ -7,7 +7,7 @@ import * as period from './period.js';
 import { makeEvent } from './events.js';
 import { state } from './state.js';
 import {
-  renderCalendarTab, renderPeriodTab, renderSettingsTab, renderPoemTab, renderWhyTab,
+  renderCalendarTab, renderPeriodTab, renderSettingsTab, renderPoemTab, renderWhyTab, renderJiri,
   renderEditor, renderPicker, pickerHtml, lockHtml, historyHtml,
   showMsg, esc, sha256hex
 } from './views.js';
@@ -34,16 +34,19 @@ function render() {
   else if (pr.dataset.open === '1') pr.innerHTML = '';
   pr.dataset.open = pickerOpen ? '1' : '0';
   $('history-root').innerHTML = state.historyOpen ? historyHtml() : '';
+  renderJiri();
 }
 
 function closeOverlays() {
   state.editorOpen = false;
   state.editingEventId = null;
   state.historyOpen = false;
+  state.jiriOpen = false;
   pickerOpen = false;
   $('overlay-root').innerHTML = '';
   $('picker-root').innerHTML = '';
   $('history-root').innerHTML = '';
+  $('jiri-root').innerHTML = '';
 }
 
 function gotoToday() {
@@ -165,6 +168,7 @@ async function run(action, btn) {
     case 'open-day':
       state.selected = ds.key;
       state.editorOpen = false;
+      state.jiriOpen = false;
       render();
       {
         const panel = document.querySelector('.day-panel');
@@ -414,6 +418,45 @@ async function run(action, btn) {
       break;
     }
 
+    case 'open-jiri':
+      state.jiriOpen = true;
+      state.jiriPage = 'events';
+      state.jiriCat = 'hot';
+      render();
+      break;
+    case 'jiri-close':
+      state.jiriOpen = false;
+      render();
+      break;
+    case 'jiri-cat':
+      state.jiriCat = ds.cat;
+      renderJiri();
+      break;
+    case 'jiri-event':
+      state.jiriEventName = ds.name;
+      state.jiriStart = todayKey();
+      state.jiriEnd = toKey(addMonths(new Date(), 3));
+      state.jiriWeekendOnly = false;
+      state.jiriPage = 'result';
+      renderJiri();
+      break;
+    case 'jiri-back':
+      state.jiriPage = 'events';
+      renderJiri();
+      break;
+    case 'jiri-range': {
+      const s = $('jiri-start').value, e = $('jiri-end').value;
+      if (!s || !e) { showMsg('请选择起止日期', true); break; }
+      if (e < s) { showMsg('结束日期不能早于开始日期', true); break; }
+      state.jiriStart = s;
+      state.jiriEnd = e;
+      renderJiri();
+      break;
+    }
+    case 'jiri-weekend':
+      state.jiriWeekendOnly = !state.jiriWeekendOnly;
+      renderJiri();
+      break;
     case 'why-shuffle': {
       state.whyIdx = randomWhyIndex(state.whyIdx);
       renderWhyTab($('view-why'));
