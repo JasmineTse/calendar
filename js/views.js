@@ -519,7 +519,7 @@ export function settingsTabHtml() {
     <h4>打赏作者</h4>
     <p class="muted">觉得好用，可以请作者喝杯奶茶～ 支付宝账号 j***@163.com（点击"复制账号"获取）</p>
     <div class="form-btns">
-      <button class="btn ghost sm" data-action="tip-pay">支付宝支付</button>
+      <button class="btn ghost sm" data-action="tip-pay">支付宝转账</button>
       <button class="btn ghost sm" data-action="tip-copy">复制账号</button>
     </div>
   </div>
