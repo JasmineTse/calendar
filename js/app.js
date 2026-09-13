@@ -552,9 +552,26 @@ async function boot() {
   // 申请持久存储，降低系统自动清理本地数据的风险（对 iOS 尤其重要）
   try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) { /* 忽略 */ }
 
-  // Service Worker（离线可用 + 可安装）
+  // Service Worker（离线可用 + 可安装），并在每次打开时检查更新
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === '127.0.0.1' || location.hostname === 'localhost')) {
-    navigator.serviceWorker.register('sw.js').catch(() => { });
+    navigator.serviceWorker.register('sw.js').then(reg => {
+      // 有新版本安装完成时立即接管；若此前已有旧版本在运行，自动刷新页面换上新代码
+      reg.addEventListener('updatefound', () => {
+        const nw = reg.installing;
+        if (!nw) return;
+        nw.addEventListener('statechange', () => {
+          if (nw.state === 'installed' && navigator.serviceWorker.controller) nw.postMessage({ type: 'SKIP_WAITING' });
+        });
+      });
+    }).catch(() => { });
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (window.__hadController) location.reload();
+      window.__hadController = true;
+    });
+    // 打开/回到前台时主动检查更新
+    const checkUpdate = () => { if (document.visibilityState === 'visible') { navigator.serviceWorker.getRegistration().then(r => r && r.update()).catch(() => { }); } };
+    checkUpdate();
+    document.addEventListener('visibilitychange', checkUpdate);
   }
 }
 

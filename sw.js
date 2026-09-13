@@ -1,5 +1,5 @@
 // Service Worker：离线缓存 + 可安装为桌面应用
-const CACHE = 'wnl-cache-v1';
+const CACHE = 'wnl-cache-v2';
 const CORE = [
   './',
   'index.html',
@@ -38,6 +38,10 @@ self.addEventListener('install', e => {
   e.waitUntil(
     caches.open(CACHE).then(c => Promise.allSettled(CORE.map(u => c.add(u)))).then(() => self.skipWaiting())
   );
+});
+
+self.addEventListener('message', e => {
+  if (e.data && e.data.type === 'SKIP_WAITING') self.skipWaiting();
 });
 
 self.addEventListener('activate', e => {
