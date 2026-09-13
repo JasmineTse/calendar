@@ -350,7 +350,7 @@ async function run(action, btn) {
       const acc = 'jasminetse@163.com';
       try { if (navigator.clipboard && navigator.clipboard.writeText) await navigator.clipboard.writeText(acc); } catch (e) { /* 忽略 */ }
       showMsg('账号已复制，正在打开支付宝…');
-      location.href = 'https://render.alipay.com/p/s/i?scheme=' + encodeURIComponent('alipays://platformapi/startapp?appId=20000003');
+      location.href = 'https://render.alipay.com/p/s/i?scheme=' + encodeURIComponent('alipays://platformapi/startapp?appId=09999988');
       break;
     }
     case 'notif-enable': {
