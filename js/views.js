@@ -6,6 +6,7 @@ import * as events from './events.js';
 import { getDayDetail, cellLabel } from './lunar-adapter.js';
 import { TERM_TIPS } from './tips.js';
 import { state } from './state.js';
+import { TIP } from './config.js';
 
 // 非首页模块按需加载：首屏不解析诗词/问答/择吉日数据
 const _mods = {};
@@ -517,10 +518,15 @@ export function settingsTabHtml() {
   </div>
   <div class="card tip-ds">
     <h4>打赏作者</h4>
-    <p class="muted">觉得好用，可以请作者喝杯奶茶～ 支付宝账号 j***@163.com（点击"复制账号"获取）</p>
+    <p class="muted">觉得好用，可以请作者喝杯奶茶～</p>
     <div class="form-btns">
-      <button class="btn ghost sm" data-action="tip-pay">支付宝转账</button>
+      <button class="btn primary sm" data-action="tip-pay">支付宝转账</button>
       <button class="btn ghost sm" data-action="tip-copy">复制账号</button>
+      <button class="btn ghost sm" data-action="tip-qr">出示收款码</button>
+    </div>
+    <div id="tip-qr-box" hidden>
+      <img src="icons/alipay-qr.jpg" alt="支付宝收款码" style="width:220px;display:block;margin:8px auto 0;border-radius:10px;">
+      <p class="muted center">同一台手机长按识别图片，或用另一台设备扫码</p>
     </div>
   </div>
   <div class="card">

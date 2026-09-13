@@ -11,6 +11,7 @@ import {
   showMsg, esc
 } from './views.js';
 import { requestPermission, permissionState, tick, startLoop } from './notify.js';
+import { TIP } from './config.js';
 
 let pickerOpen = false;
 
@@ -329,6 +330,11 @@ async function run(action, btn) {
       break;
 
     // 设置
+    case 'tip-qr': {
+      const box = document.getElementById('tip-qr-box');
+      if (box) box.hidden = !box.hidden;
+      break;
+    }
     case 'tip-copy': {
       const acc = 'jasminetse@163.com';
       try {
@@ -349,8 +355,8 @@ async function run(action, btn) {
     case 'tip-pay': {
       const acc = 'jasminetse@163.com';
       try { if (navigator.clipboard && navigator.clipboard.writeText) await navigator.clipboard.writeText(acc); } catch (e) { /* 忽略 */ }
-      showMsg('账号已复制，正在打开支付宝…');
-      location.href = 'https://render.alipay.com/p/s/i?scheme=' + encodeURIComponent('alipays://platformapi/startapp?appId=09999988');
+      showMsg('正在打开支付宝收款页…');
+      location.href = TIP.alipayQrUrl;
       break;
     }
     case 'notif-enable': {

@@ -22,6 +22,7 @@ const CORE = [
   'js/whys.js',
   'js/whys-more.js',
   'js/jiri.js',
+  'js/config.js',
   'js/notify.js',
   'js/state.js',
   'js/views.js',
